@@ -389,6 +389,12 @@ object InuConfig {
     val BUILT_IN_TUNNEL_PROTOCOL = IntItem("built_in_tunnel_protocol", 0)
 
     @JvmField
+    val HELBOY_TV = BoolItem("helboy_tv", false)
+
+    @JvmField
+    val HELBOY_FAVORITES = StringItem("helboy_favorites", "")
+
+    @JvmField
     val SHOW_ALL_RECENT_STICKERS = BoolItem("show_all_recent_stickers", true)
 
     @JvmField

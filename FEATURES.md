@@ -139,6 +139,7 @@ our own layer on top of the inugram patchset: restricted Telegram features, priv
 - 📡 **export chat (experimental)**: collect the whole history in background from the chat menu and save it as JSON, or as an HTML page with downloaded media in a plain folder — photos, videos, voice and video messages, stickers, GIFs and files, with per-type checkboxes and a size limit; the result lands in Downloads/entinyGram/Chat Export with view and show-folder actions
 - 📡 **UnifiedPush (experimental)**: get notifications through a UnifiedPush distributor like gCompat-UP, Sunup, Prism, or ntfy instead of Firebase, with distributor and rewrite gateway settings in Additional; works without Google Play - *ported from [Forkgram](https://github.com/forkgram/TelegramAndroid) & [Mercurygram](https://github.com/mercurygram/mercurygram)*
 - 📡 **fix stuck playback on pause**: disable AudioTrack playback params that caused audio/video to keep playing after pause on MIUI and certain DSP hardware
+- 📡 **Helboy TV** (⚠️ work in progress: untested and may be unstable — please report any bugs): a quiet hamburger-menu entry to browse live TV, radio, and city webcams from around the world inside Telegram, played through the app's own internal player and routed over Entiny Tunnel when it's on — searchable country/channel list with favorites and a clean Telegram-native look, no external app. *channel data and proxy routing ported from [Suni TV](https://github.com/HELBOYCODER/suni-tv) (MIT)*
 
 ### debloat & premium noise
 

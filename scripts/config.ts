@@ -241,6 +241,9 @@ export const ICON_SELECTION: { pack: IconifyJSON, icons: string[], options?: Svg
       'pin',
       'arrow-bar-to-right',
       'marquee-2',
+      'device-tv',
+      'radio',
+      'device-cctv',
     ],
   },
 ]

@@ -1549,6 +1549,17 @@
     <string name="InuOnlineDotsInfo">在线圆点显示为蓝色，并在联系人离线后显示为黄色或红色而不是直接隐藏：20分钟内为黄色，1小时内为红色。</string>
     <string name="InuBuiltInTunnel">Entiny Tunnel</string>
     <string name="InuBuiltInTunnelInfo">Built-in proxy for all connections</string>
+    <string name="InuHelboyAddFavorite">Add to favorites</string>
+    <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
+    <string name="InuHelboyPlay">Play</string>
+    <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
+    <string name="InuHelboySearchHint">Search channels</string>
+    <string name="InuHelboySectionFavorites">Favorites</string>
+    <string name="InuHelboySectionRadio">Radio stations</string>
+    <string name="InuHelboySectionTv">TV channels</string>
+    <string name="InuHelboySectionWebcams">Live webcams</string>
+    <string name="InuHelboyTv">Helboy TV</string>
+    <string name="InuHelboyTvInfo">Live TV, radio and webcams — play through Telegram</string>
     <string name="InuTunnelProtoAuto">Automatic</string>
     <string name="InuTunnelProtoGool">WARP inside WARP</string>
     <string name="InuTunnelProtoMasque">MASQUE (HTTP/3)</string>

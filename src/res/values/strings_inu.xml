@@ -1574,4 +1574,15 @@
     <string name="InuTunnelStatusOff">Disconnected</string>
     <string name="InuTunnelStatusConnecting">Connecting…</string>
     <string name="InuTunnelStatusConnected">Connected via %1$s</string>
+    <string name="InuHelboyTv">Helboy TV</string>
+    <string name="InuHelboyTvInfo">Live TV, radio and webcams — play through Telegram</string>
+    <string name="InuHelboySectionTv">TV channels</string>
+    <string name="InuHelboySectionRadio">Radio stations</string>
+    <string name="InuHelboySectionWebcams">Live webcams</string>
+    <string name="InuHelboySectionFavorites">Favorites</string>
+    <string name="InuHelboySearchHint">Search channels</string>
+    <string name="InuHelboyPlay">Play</string>
+    <string name="InuHelboyAddFavorite">Add to favorites</string>
+    <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
+    <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
 </resources>

@@ -293,6 +293,9 @@ class DrawerLayoutAdapter(
         }
         items.add(Item(ITEM_PROXY, LocaleController.getString(R.string.ProxySettings), R.drawable.outline_shield_check))
         items.add(Item(ITEM_TUNNEL, LocaleController.getString(R.string.InuBuiltInTunnel), R.drawable.inu_tabler_shield_lock))
+        if (InuConfig.HELBOY_TV.value) {
+            items.add(Item(ITEM_HELBOY_TV, LocaleController.getString(R.string.InuHelboyTv), R.drawable.inu_tabler_device_tv))
+        }
         items.add(Item(ITEM_GHOST, LocaleController.getString(R.string.InuGhostMode), R.drawable.inu_ghost))
         items.add(Item(8, LocaleController.getString(R.string.Settings), R.drawable.msg_settings))
     }
@@ -304,6 +307,7 @@ class DrawerLayoutAdapter(
         const val ITEM_SCROLL_TOP = 20
         const val ITEM_FEED = 21
         const val ITEM_TUNNEL = 22
+        const val ITEM_HELBOY_TV = 23
     }
 
     class Item private constructor(

@@ -64,6 +64,7 @@ object InuHooks {
             CloudSettingsHelper.attachAutoSyncListener()
             ProxyVpnHelper.init(context)
             desu.inugram.helpers.network.BuiltInTunnelHelper.init(context)
+            desu.inugram.helpers.helboy.HelboyStore.warmUp()
             UrlCleanerHelper.preload()
         }
     }

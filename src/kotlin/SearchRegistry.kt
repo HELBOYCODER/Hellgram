@@ -76,6 +76,7 @@ object SearchRegistry {
             BackupSettingsActivity.PAGE,
             FeedExcludedChannelsSettingsActivity.PAGE,
             TunnelSettingsActivity.PAGE,
+            desu.inugram.ui.helboy.HelboyActivity.PAGE,
         )
     }
 

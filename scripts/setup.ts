@@ -174,6 +174,15 @@ async function ensureTunnelLibs() {
   }
 }
 
+async function ensureHelboyData() {
+  // Helboy TV channel database (from Suni TV, MIT); gitignored.
+  const target = join(assetsDir, 'helboy_data.bin')
+  if (await fs.stat(target).then(() => true, () => false)) return
+  await downloadTo(
+    'https://raw.githubusercontent.com/HELBOYCODER/suni-tv/source/app/src/main/assets/famelack_data.bin',
+    target,
+  )
+}
 
 async function importSeries(seriesEntries: string[]) {
   const repo = cd(worktreeDir)
@@ -258,6 +267,7 @@ if (noStgit) {
   if (!noSubmodules) await syncSubmodules(worktreeDir)
   await ensureAdGuardFilter()
   await ensureTunnelLibs()
+  await ensureHelboyData()
   await linkForkSource(worktreeDir)
   await generateIconDrawables(worktreeDir)
   success('Flat setup complete')
@@ -274,6 +284,7 @@ if (noStgit) {
   const syncedSubmodules = noSubmodules ? false : await syncSubmodules(worktreeDir)
   await ensureAdGuardFilter()
   await ensureTunnelLibs()
+  await ensureHelboyData()
   await ensureGitExclude(worktreeDir, '.kotlin')
   const linkedAny = await linkForkSource(worktreeDir)
   const generatedAny = await generateIconDrawables(worktreeDir)

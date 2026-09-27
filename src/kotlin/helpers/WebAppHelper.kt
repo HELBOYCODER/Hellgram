@@ -20,11 +20,15 @@ object WebAppHelper {
     const val HELPER_BOT_USERNAME = "inu_helper_bot"
     const val HELPER_BOT_ID = 8589894659L
     const val TYPE_TLV = 1
+    const val TYPE_HELBOY = 2
+
+    @JvmField var helboyTitle: String? = null
 
     @JvmStatic
     fun getInternalBotName(props: WebViewRequestProps): String? {
         return when (props.inu_internalType) {
             TYPE_TLV -> LocaleController.getString(R.string.InuShowJson);
+            TYPE_HELBOY -> helboyTitle ?: LocaleController.getString(R.string.InuHelboyTv);
             else -> null
         }
     }
@@ -80,6 +84,17 @@ object WebAppHelper {
         }
         val url = "https://schema.jppgr.am/embed#data=" + serialized + "&layer=" + TLRPC.LAYER + "&hide-toolbar=1"
         openInternalWebApp(fragment, url, TYPE_TLV)
+    }
+
+    @JvmStatic
+    fun openHelboyWebApp(fragment: BaseFragment, url: String) {
+        desu.inugram.helpers.helboy.HelboyWebViewProxy.applyFromTunnel()
+        openInternalWebApp(fragment, url, TYPE_HELBOY)
+    }
+
+    @JvmStatic
+    fun openInternalWebApp(fragment: BaseFragment, url: String, type: Int) {
+        openInternalWebApp(fragment, url, type, true)
     }
 
     private fun openInternalWebApp(fragment: BaseFragment, url: String, type: Int, allowResolve: Boolean = true) {

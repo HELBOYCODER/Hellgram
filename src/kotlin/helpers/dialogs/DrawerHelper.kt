@@ -658,6 +658,11 @@ object DrawerHelper {
                 close()
             }
 
+            ITEM_HELBOY_TV -> {
+                nav.presentFragment(desu.inugram.ui.helboy.HelboyActivity())
+                close()
+            }
+
             else -> close()
         }
     }
@@ -683,6 +688,7 @@ object DrawerHelper {
     private const val ITEM_SCROLL_TOP = DrawerLayoutAdapter.ITEM_SCROLL_TOP
     private const val ITEM_FEED = DrawerLayoutAdapter.ITEM_FEED
     private const val ITEM_TUNNEL = DrawerLayoutAdapter.ITEM_TUNNEL
+    private const val ITEM_HELBOY_TV = DrawerLayoutAdapter.ITEM_HELBOY_TV
 
     @JvmStatic
     fun notifyDataChanged() {
