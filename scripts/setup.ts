@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises'
-import { join } from 'node:path'
-import { ICON_SELECTION, patchesDir, rootDir, worktreeDir } from './config.js'
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { $ } from 'zx'
+import { ICON_SELECTION, assetsDir, patchesDir, rootDir, worktreeDir } from './config.js'
 import {
   cd,
   cloneUpstream,
@@ -135,6 +137,44 @@ async function ensureAdGuardFilter() {
   await fs.writeFile(target, await res.text())
 }
 
+async function downloadTo(url: string, file: string) {
+  step(`Downloading ${url}`)
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`)
+  await ensureDir(dirname(file))
+  await fs.writeFile(file, Buffer.from(await res.arrayBuffer()))
+}
+
+async function ensureTunnelLibs() {
+  // Prebuilt tunnel engine (GPLv3, https://github.com/FCFlenkchy/FCAE_VPN) extracted from its release APK; gitignored.
+  const abis = (process.env.TUNNEL_ABIS ?? 'arm64-v8a').split(',').map(s => s.trim()).filter(Boolean)
+  const libsRoot = join(rootDir, 'src/tunnel/jniLibs')
+  const missing = abis.filter(abi => !existsSync(join(libsRoot, abi, 'libfcaevpn_native.so')))
+  if (missing.length === 0) return
+  const tmp = join(rootDir, '.tunnel-tmp')
+  try {
+    await fs.rm(tmp, { recursive: true, force: true })
+    await ensureDir(tmp)
+    await downloadTo(
+      'https://github.com/FCFlenkchy/FCAE_VPN/releases/download/v1.2.9/FCAE_VPN-android-universal.zip',
+      join(tmp, 'engine.zip'),
+    )
+    await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
+    const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
+    if (!apk) throw new Error('no APK inside engine.zip')
+    for (const abi of missing) {
+      await $({ quiet: true })`unzip -q -o ${join(tmp, apk)} ${`lib/${abi}/*`} -d ${tmp}`
+      const src = join(tmp, 'lib', abi)
+      if (!existsSync(src)) throw new Error(`tunnel release has no ${abi} libraries`)
+      await ensureDir(join(libsRoot, abi))
+      await fs.cp(src, join(libsRoot, abi), { recursive: true })
+    }
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true })
+  }
+}
+
+
 async function importSeries(seriesEntries: string[]) {
   const repo = cd(worktreeDir)
   await repo`git config core.autocrlf false`
@@ -217,6 +257,7 @@ if (noStgit) {
   }
   if (!noSubmodules) await syncSubmodules(worktreeDir)
   await ensureAdGuardFilter()
+  await ensureTunnelLibs()
   await linkForkSource(worktreeDir)
   await generateIconDrawables(worktreeDir)
   success('Flat setup complete')
@@ -232,6 +273,7 @@ if (noStgit) {
   }
   const syncedSubmodules = noSubmodules ? false : await syncSubmodules(worktreeDir)
   await ensureAdGuardFilter()
+  await ensureTunnelLibs()
   await ensureGitExclude(worktreeDir, '.kotlin')
   const linkedAny = await linkForkSource(worktreeDir)
   const generatedAny = await generateIconDrawables(worktreeDir)

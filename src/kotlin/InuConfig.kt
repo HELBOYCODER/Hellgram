@@ -383,6 +383,12 @@ object InuConfig {
     val LEAK_GUARD = BoolItem("leak_guard", false)
 
     @JvmField
+    val BUILT_IN_TUNNEL = BoolItem("built_in_tunnel", false)
+
+    @JvmField
+    val BUILT_IN_TUNNEL_PROTOCOL = IntItem("built_in_tunnel_protocol", 0)
+
+    @JvmField
     val SHOW_ALL_RECENT_STICKERS = BoolItem("show_all_recent_stickers", true)
 
     @JvmField

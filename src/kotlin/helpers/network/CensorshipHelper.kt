@@ -40,6 +40,11 @@ object CensorshipHelper {
     fun setTunnelEnabled(enabled: Boolean) {
         InuConfig.ANTICENSOR_WS_TUNNEL.value = enabled
         if (enabled) startTunnel() else stopTunnel()
+        Utilities.globalQueue.postRunnable { reapply() }
+    }
+
+    @JvmStatic
+    fun reapply() {
         Utilities.globalQueue.postRunnable { reapplyProxy() }
     }
 
@@ -61,6 +66,10 @@ object CensorshipHelper {
     }
 
     private fun reapplyProxy() {
+        if (BuiltInTunnelHelper.isActive()) {
+            ConnectionsManager.setProxySettings(true, "127.0.0.1", BuiltInTunnelHelper.SOCKS_PORT, "", "", "")
+            return
+        }
         if (isTunnelActive()) {
             ConnectionsManager.setProxySettings(true, tunnelHost(), tunnelPort(), "", "", tunnelSecret())
             return
@@ -111,6 +120,9 @@ object CensorshipHelper {
             if (!InuConfig.LEAK_GUARD.value) return fallback?.select(uri) ?: listOf(Proxy.NO_PROXY)
             val host = uri.host ?: return listOf(blackhole)
             if (host == "127.0.0.1" || host == "localhost") return listOf(Proxy.NO_PROXY)
+            if (BuiltInTunnelHelper.isActive()) {
+                return listOf(Proxy(Proxy.Type.SOCKS, InetSocketAddress.createUnresolved("127.0.0.1", BuiltInTunnelHelper.SOCKS_PORT)))
+            }
             val socks = userSocks() ?: return listOf(blackhole)
             return listOf(Proxy(Proxy.Type.SOCKS, InetSocketAddress.createUnresolved(socks.settings.address, socks.settings.port)))
         }

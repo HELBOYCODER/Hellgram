@@ -1546,4 +1546,16 @@
     <string name="InuRestartAppAlert">アプリが一度終了して再度開きます。未送信の下書きや進行中のアップロードが失われる可能性があります。</string>
     <string name="InuOnlineDots">色分けされたオンラインドット</string>
     <string name="InuOnlineDotsInfo">オンラインドットを青で表示し、連絡先がオフラインになったら非表示にする代わりに黄色または赤で表示します（20分以内は黄色、1時間以内は赤）。</string>
+    <string name="InuBuiltInTunnel">Entiny Tunnel</string>
+    <string name="InuBuiltInTunnelInfo">Built-in proxy for all connections</string>
+    <string name="InuTunnelProtoAuto">Automatic</string>
+    <string name="InuTunnelProtoGool">WARP inside WARP</string>
+    <string name="InuTunnelProtoMasque">MASQUE (HTTP/3)</string>
+    <string name="InuTunnelProtoMim">MASQUE inside MASQUE</string>
+    <string name="InuTunnelProtoWireGuard">WireGuard</string>
+    <string name="InuTunnelProtocol">Protocol</string>
+    <string name="InuTunnelProtocolFooter">Routes all Telegram traffic through an encrypted tunnel. No server or subscription needed. While enabled it overrides manual proxies; connection issues are reported silently and fall back to your usual settings.</string>
+    <string name="InuTunnelStatusConnected">Connected via %1$s</string>
+    <string name="InuTunnelStatusConnecting">Connecting…</string>
+    <string name="InuTunnelStatusOff">Disconnected</string>
 </resources>

@@ -33,6 +33,7 @@ class DrawerLayoutAdapter(
     private val mDrawerLayoutContainer: DrawerLayoutContainer,
     private val onProxySwitchToggled: ((Boolean) -> Unit)? = null,
     private val onGhostSwitchToggled: ((Boolean) -> Unit)? = null,
+    private val onTunnelSwitchToggled: ((Boolean) -> Unit)? = null,
 ) : RecyclerListView.SelectionAdapter() {
 
     private val items = ArrayList<Item?>(11)
@@ -94,7 +95,7 @@ class DrawerLayoutAdapter(
 
     override fun isEnabled(holder: RecyclerView.ViewHolder): Boolean {
         val t = holder.itemViewType
-        return t == 3 || t == 4 || t == 5 || t == 6 || t == 7 || t == 8
+        return t == 3 || t == 4 || t == 5 || t == 6 || t == 7 || t == 8 || t == 9
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -106,6 +107,7 @@ class DrawerLayoutAdapter(
             5 -> DrawerAddCell(mContext)
             7 -> DrawerProxyCell(mContext)
             8 -> DrawerGhostCell(mContext)
+            9 -> DrawerTunnelCell(mContext)
             else -> EmptyCell(mContext, AndroidUtilities.dp(8f))
         }
         view.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -174,6 +176,21 @@ class DrawerLayoutAdapter(
                     DrawerM3SectionsHelper.resetMenuRow(cell)
                 }
             }
+
+            9 -> {
+                val cell = holder.itemView as DrawerTunnelCell
+                var pos = position - 2
+                if (accountsShown) pos -= getAccountRowsCount()
+                val item = items[pos]
+                if (item != null) cell.bind(item.text ?: "", item.icon)
+                cell.setChecked(desu.inugram.InuConfig.BUILT_IN_TUNNEL.value)
+                cell.onSwitchToggled = onTunnelSwitchToggled
+                if (DrawerM3SectionsHelper.isEnabled()) {
+                    m3GroupFor(position)?.let { DrawerM3SectionsHelper.styleMenuRow(cell, it.first, it.second) }
+                } else {
+                    DrawerM3SectionsHelper.resetMenuRow(cell)
+                }
+            }
         }
     }
 
@@ -206,6 +223,7 @@ class DrawerLayoutAdapter(
         val id = items[idx]?.id ?: return 2
         if (id == ITEM_PROXY) return 7
         if (id == ITEM_GHOST) return 8
+        if (id == ITEM_TUNNEL) return 9
         return 3
     }
 
@@ -274,6 +292,7 @@ class DrawerLayoutAdapter(
             items.add(Item(ITEM_ARCHIVE, LocaleController.getString(R.string.ArchivedChats), R.drawable.msg_archive))
         }
         items.add(Item(ITEM_PROXY, LocaleController.getString(R.string.ProxySettings), R.drawable.outline_shield_check))
+        items.add(Item(ITEM_TUNNEL, LocaleController.getString(R.string.InuBuiltInTunnel), R.drawable.inu_tabler_shield_lock))
         items.add(Item(ITEM_GHOST, LocaleController.getString(R.string.InuGhostMode), R.drawable.inu_ghost))
         items.add(Item(8, LocaleController.getString(R.string.Settings), R.drawable.msg_settings))
     }
@@ -284,6 +303,7 @@ class DrawerLayoutAdapter(
         const val ITEM_GHOST = 19
         const val ITEM_SCROLL_TOP = 20
         const val ITEM_FEED = 21
+        const val ITEM_TUNNEL = 22
     }
 
     class Item private constructor(

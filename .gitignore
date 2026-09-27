@@ -13,6 +13,7 @@ out/
 src/google-services.json
 src/core/build
 src/res/assets/adguard_url_tracking.txt
+src/tunnel/
 TODO.md
 CLAUDE.local.md
 .local_build_number

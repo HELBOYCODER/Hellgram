@@ -49,6 +49,7 @@ our own layer on top of the inugram patchset: restricted Telegram features, priv
   - **hide sponsored messages**: completely disables Telegram sponsored channel ads and video ads
   - **hide proxy sponsor chat**: blocks the promoted chat/channel some MTProto proxies pin to the top of your chat list while connected
   - **regex content filter**: hide or spoiler-cover messages matching custom regex rules, with per-chat scope, allowlists, and JSON export/import
+- 📡 **Entiny Tunnel** (⚠️ work in progress: untested and may be unstable — please report any bugs): built-in MASQUE / Cloudflare WARP proxy for all Telegram connections with no server or subscription — pick a protocol (MASQUE, WireGuard, WARP-in-WARP, automatic, or nested MASQUE) from the drawer Proxy row or settings; routes the app's SOCKS5 and all WebView traffic through a local loopback while enabled, falls back to your usual proxy/direct settings when off. No "FCAE" branding shown; *engine powered by [FCAE VPN](https://github.com/FCFlenkchy/FCAE_VPN) (GPLv3)*
 
 ### restricted features
 

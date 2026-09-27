@@ -6,6 +6,7 @@ import desu.inugram.ui.settings.AdditionalSettingsActivity
 import desu.inugram.ui.settings.AiSettingsActivity
 import desu.inugram.ui.settings.AnnoyancesSettingsActivity
 import desu.inugram.ui.settings.AntiCensorshipSettingsActivity
+import desu.inugram.ui.settings.TunnelSettingsActivity
 import desu.inugram.ui.settings.AntiDeletionSettingsActivity
 import desu.inugram.ui.settings.AppearanceSettingsActivity
 import desu.inugram.ui.settings.BackupSettingsActivity
@@ -74,6 +75,7 @@ object SearchRegistry {
             DatacenterStatusActivity.PAGE,
             BackupSettingsActivity.PAGE,
             FeedExcludedChannelsSettingsActivity.PAGE,
+            TunnelSettingsActivity.PAGE,
         )
     }
 

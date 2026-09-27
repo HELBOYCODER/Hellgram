@@ -1562,4 +1562,16 @@
     <string name="InuFeedNewPostsIndicatorPill">Pill</string>
     <string name="InuRestartApp">Restart app</string>
     <string name="InuRestartAppAlert">The app will close and reopen. Unsent drafts and in-progress uploads may be lost.</string>
+    <string name="InuBuiltInTunnel">Entiny Tunnel</string>
+    <string name="InuBuiltInTunnelInfo">Built-in proxy for all connections</string>
+    <string name="InuTunnelProtocol">Protocol</string>
+    <string name="InuTunnelProtoMasque">MASQUE (HTTP/3)</string>
+    <string name="InuTunnelProtoWireGuard">WireGuard</string>
+    <string name="InuTunnelProtoGool">WARP inside WARP</string>
+    <string name="InuTunnelProtoAuto">Automatic</string>
+    <string name="InuTunnelProtoMim">MASQUE inside MASQUE</string>
+    <string name="InuTunnelProtocolFooter">Routes all Telegram traffic through an encrypted tunnel. No server or subscription needed. While enabled it overrides manual proxies; connection issues are reported silently and fall back to your usual settings.</string>
+    <string name="InuTunnelStatusOff">Disconnected</string>
+    <string name="InuTunnelStatusConnecting">Connecting…</string>
+    <string name="InuTunnelStatusConnected">Connected via %1$s</string>
 </resources>

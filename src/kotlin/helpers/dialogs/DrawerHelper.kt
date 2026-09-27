@@ -29,6 +29,7 @@ import desu.inugram.ui.drawer.DrawerUserCell
 import desu.inugram.ui.drawer.SideMenultItemAnimator
 import desu.inugram.ui.settings.ParanoiaActivity
 import desu.inugram.ui.settings.TosSettingsActivity
+import desu.inugram.ui.settings.TunnelSettingsActivity
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.AndroidUtilities.dp
 import org.telegram.messenger.ApplicationLoader
@@ -159,6 +160,7 @@ object DrawerHelper {
             drawerLayoutContainer,
             ::applyProxyEnabled,
             ::applyGhostEnabled,
+            ::applyTunnelEnabled,
         )
         adapter = newAdapter
         sideMenu = sm
@@ -384,6 +386,9 @@ object DrawerHelper {
     }
 
     private fun applyProxyEnabled(enabled: Boolean) {
+        if (desu.inugram.helpers.network.BuiltInTunnelHelper.isActive()) {
+            desu.inugram.helpers.network.BuiltInTunnelHelper.setEnabled(false)
+        }
         val proxy = if (enabled) SharedConfig.currentProxy else null
         MessagesController.getGlobalMainSettings().edit()
             .putBoolean("proxy_enabled", enabled && proxy != null)
@@ -398,6 +403,11 @@ object DrawerHelper {
         }
         NotificationCenter.getGlobalInstance()
             .postNotificationName(NotificationCenter.proxySettingsChanged)
+    }
+
+    private fun applyTunnelEnabled(enabled: Boolean) {
+        desu.inugram.helpers.network.BuiltInTunnelHelper.setEnabled(enabled)
+        adapter?.notifyDataSetChanged()
     }
 
     private fun applyGhostEnabled(enabled: Boolean) {
@@ -643,6 +653,11 @@ object DrawerHelper {
                 close()
             }
 
+            ITEM_TUNNEL -> {
+                nav.presentFragment(TunnelSettingsActivity())
+                close()
+            }
+
             else -> close()
         }
     }
@@ -667,6 +682,7 @@ object DrawerHelper {
     private const val ITEM_GHOST = DrawerLayoutAdapter.ITEM_GHOST
     private const val ITEM_SCROLL_TOP = DrawerLayoutAdapter.ITEM_SCROLL_TOP
     private const val ITEM_FEED = DrawerLayoutAdapter.ITEM_FEED
+    private const val ITEM_TUNNEL = DrawerLayoutAdapter.ITEM_TUNNEL
 
     @JvmStatic
     fun notifyDataChanged() {
