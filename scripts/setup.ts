@@ -147,30 +147,43 @@ async function downloadTo(url: string, file: string) {
 
 async function ensureTunnelLibs() {
   // Prebuilt tunnel engine (GPLv3, https://github.com/FCFlenkchy/FCAE_VPN) extracted from its release APK; gitignored.
+  // Must land under TMessagesProj/jni/<abi>/ because that is the only jniLibs srcDir in Telegram's gradle.
   const abis = (process.env.TUNNEL_ABIS ?? 'arm64-v8a').split(',').map(s => s.trim()).filter(Boolean)
-  const libsRoot = join(rootDir, 'src/tunnel/jniLibs')
-  const missing = abis.filter(abi => !existsSync(join(libsRoot, abi, 'libfcaevpn_native.so')))
-  if (missing.length === 0) return
-  const tmp = join(rootDir, '.tunnel-tmp')
-  try {
-    await fs.rm(tmp, { recursive: true, force: true })
-    await ensureDir(tmp)
-    await downloadTo(
-      'https://github.com/FCFlenkchy/FCAE_VPN/releases/download/v1.2.9/FCAE_VPN-android-universal.zip',
-      join(tmp, 'engine.zip'),
-    )
-    await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
-    const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
-    if (!apk) throw new Error('no APK inside engine.zip')
-    for (const abi of missing) {
-      await $({ quiet: true })`unzip -q -o ${join(tmp, apk)} ${`lib/${abi}/*`} -d ${tmp}`
-      const src = join(tmp, 'lib', abi)
-      if (!existsSync(src)) throw new Error(`tunnel release has no ${abi} libraries`)
-      await ensureDir(join(libsRoot, abi))
-      await fs.cp(src, join(libsRoot, abi), { recursive: true })
+  const stageRoot = join(rootDir, 'src/tunnel/jniLibs')
+  const missing = abis.filter(abi => !existsSync(join(stageRoot, abi, 'libfcaevpn_native.so')))
+  if (missing.length > 0) {
+    const tmp = join(rootDir, '.tunnel-tmp')
+    try {
+      await fs.rm(tmp, { recursive: true, force: true })
+      await ensureDir(tmp)
+      await downloadTo(
+        'https://github.com/FCFlenkchy/FCAE_VPN/releases/download/v1.2.9/FCAE_VPN-android-universal.zip',
+        join(tmp, 'engine.zip'),
+      )
+      await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
+      const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
+      if (!apk) throw new Error('no APK inside engine.zip')
+      for (const abi of missing) {
+        await $({ quiet: true })`unzip -q -o ${join(tmp, apk)} ${`lib/${abi}/*`} -d ${tmp}`
+        const src = join(tmp, 'lib', abi)
+        if (!existsSync(src)) throw new Error(`tunnel release has no ${abi} libraries`)
+        await ensureDir(join(stageRoot, abi))
+        await fs.cp(src, join(stageRoot, abi), { recursive: true })
+      }
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true })
     }
-  } finally {
-    await fs.rm(tmp, { recursive: true, force: true })
+  }
+  for (const abi of abis) {
+    const stage = join(stageRoot, abi)
+    if (!existsSync(stage)) continue
+    const target = join(worktreeDir, 'TMessagesProj/jni', abi)
+    await ensureDir(target)
+    for (const file of await fs.readdir(stage)) {
+      if (!file.endsWith('.so')) continue
+      await fs.copyFile(join(stage, file), join(target, file))
+      await ensureGitExclude(worktreeDir, `TMessagesProj/jni/${abi}/${file}`)
+    }
   }
 }
 

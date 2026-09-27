@@ -116,11 +116,6 @@ export const forkSyncFiles: ForkSyncFile[] = [
     target: 'TMessagesProj/src/main/assets',
   },
   {
-    source: 'src/tunnel/jniLibs',
-    target: 'TMessagesProj/src/main/jniLibs',
-    directory: true,
-  },
-  {
     source: 'src/res/raw/*',
     target: 'TMessagesProj/src/main/res/raw',
   },
