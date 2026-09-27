@@ -24,6 +24,12 @@ data class HelboyChannel(
 ) {
     val hasStreams: Boolean get() = streamUrls.isNotEmpty()
     val isYoutubeOnly: Boolean get() = streamUrls.isEmpty() && youtubeId != null
+    val primaryUrl: String?
+        get() = when {
+            streamUrls.isNotEmpty() -> streamUrls.first()
+            youtubeId != null -> "https://www.youtube.com/watch?v=$youtubeId"
+            else -> null
+        }
 
     companion object {
         fun fromJson(o: JSONObject): HelboyChannel {

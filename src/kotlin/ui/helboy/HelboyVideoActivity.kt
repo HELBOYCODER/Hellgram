@@ -24,7 +24,6 @@ class HelboyVideoActivity(
     override fun createView(context: Context): View {
         val container = FrameLayout(context)
         container.setBackgroundColor(Color.BLACK)
-        actionBar.setVisible(true)
         actionBar.setTitle(titleText)
         actionBar.setActionBarMenuOnItemClick(object : org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick() {
             override fun onItemClick(id: Int) {
@@ -34,13 +33,13 @@ class HelboyVideoActivity(
 
         val surface = SurfaceView(context)
         surfaceView = surface
-        container.addView(surface, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT))
+        container.addView(surface, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT.toFloat()))
         val tap = View(context)
         tap.isClickable = true
         tap.setOnClickListener {
             player?.let { p -> if (p.isPlaying) p.pause() else p.play() }
         }
-        container.addView(tap, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT))
+        container.addView(tap, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT.toFloat()))
         AndroidUtilities.runOnUIThread {
             if (streamUrl.isEmpty()) return@runOnUIThread
             val p = VideoPlayer(true, false)

@@ -15,6 +15,6 @@ object HelboyPlayer {
             WebAppHelper.openHelboyWebApp(fragment, url)
             return
         }
-        fragment.navigationStack?.presentFragment(HelboyVideoActivity(url, ch.name))
+        fragment.presentFragment(HelboyVideoActivity(url, ch.name))
     }
 }
