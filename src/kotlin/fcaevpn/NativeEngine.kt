@@ -3,9 +3,9 @@ package com.fc.fcaevpn
 import android.util.Log
 import androidx.annotation.Keep
 
-// entiny: JNI surface of the embedded MASQUE/WARP tunnel engine. Class/package must stay
-// identical to the upstream prebuilt .so symbols. Ported from FCAE VPN (GPLv3),
-// https://github.com/FCFlenkchy/FCAE_VPN
+// entiny: JNI surface of the embedded MASQUE/WARP tunnel engine, mirroring the upstream
+// wrapper at 1.3.5.7 exactly (signatures must match the prebuilt .so). Ported from
+// FCAE VPN (GPLv3), https://github.com/FCFlenkchy/FCAE_VPN
 @Keep
 object NativeEngine {
     private var isLoaded = false
@@ -14,18 +14,20 @@ object NativeEngine {
         if (isLoaded) return true
         return try {
             System.loadLibrary("c++_shared")
+            System.loadLibrary("fcae_go_bridge")
             System.loadLibrary("fcaevpn_native")
             nativeInit()
             isLoaded = true
-            Log.i("TunnelNative", "tunnel native library loaded")
+            Log.i("TunnelNative", "tunnel native libraries loaded")
             true
         } catch (e: Throwable) {
-            Log.e("TunnelNative", "Failed to load tunnel native library", e)
+            Log.e("TunnelNative", "Failed to load tunnel native libraries", e)
             false
         }
     }
 
     @JvmStatic external fun nativeInit()
+    @JvmStatic external fun nativeSetNativeLibDir(path: String)
     @JvmStatic external fun nativeStart(
         protocol: Int,
         mode: Int,
@@ -52,9 +54,28 @@ object NativeEngine {
         accessEmail: String,
         routesFile: String,
         routesInline: String,
+        torMode: Int,
+        torBridges: Int,
+        torBridgeLines: String,
+        engineLog: Int,
+        backend: Int,
+        torSocksPort: Int,
+        torHttpPort: Int,
+        psiphonThroughTunnel: Boolean,
+        psiphonConfig: String,
+        psiphonRegion: String,
+        psiphonSocksPort: Int,
+        psiphonHttpPort: Int,
+        tunTcpSndbuf: Int,
+        tunTcpRcvbuf: Int,
+        tunTcpAutoTuning: Boolean,
+        t2sLog: Int,
+        tunEngine: Int,
+        tunMtu: Int,
+        tunDnsServers: String,
     ): Boolean
     @JvmStatic external fun nativeStop()
-    @JvmStatic external fun nativeFree()
+    @JvmStatic external fun nativeStopBegin()
     @JvmStatic external fun nativeGetLogs(): String
     @JvmStatic external fun nativeClearLogs()
 

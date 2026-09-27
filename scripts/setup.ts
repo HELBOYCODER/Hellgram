@@ -154,16 +154,16 @@ async function ensureTunnelLibs() {
   if (missing.length > 0) {
     const tmp = join(rootDir, '.tunnel-tmp')
     try {
-      await fs.rm(tmp, { recursive: true, force: true })
-      await ensureDir(tmp)
-      await downloadTo(
-        'https://github.com/FCFlenkchy/FCAE_VPN/releases/download/v1.2.9/FCAE_VPN-android-universal.zip',
-        join(tmp, 'engine.zip'),
-      )
-      await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
-      const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
-      if (!apk) throw new Error('no APK inside engine.zip')
       for (const abi of missing) {
+        await fs.rm(tmp, { recursive: true, force: true })
+        await ensureDir(tmp)
+        await downloadTo(
+          `https://github.com/FCFlenkchy/FCAE_VPN/releases/download/1.3.5.7/FCAE_VPN-android-${abi}-1.3.5.7.zip`,
+          join(tmp, 'engine.zip'),
+        )
+        await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
+        const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
+        if (!apk) throw new Error('no APK inside engine.zip')
         await $({ quiet: true })`unzip -q -o ${join(tmp, apk)} ${`lib/${abi}/*`} -d ${tmp}`
         const src = join(tmp, 'lib', abi)
         if (!existsSync(src)) throw new Error(`tunnel release has no ${abi} libraries`)
@@ -195,6 +195,19 @@ async function ensureHelboyData() {
     'https://raw.githubusercontent.com/HELBOYCODER/suni-tv/source/app/src/main/assets/famelack_data.bin',
     target,
   )
+}
+
+async function ensureHelboyPlayer() {
+  // Vendored web-player libs for the bundled helboy_player page; gitignored.
+  const dir = join(assetsDir, 'helboy_player')
+  const libs: [string, string][] = [
+    ['hls.min.js', 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js'],
+    ['plyr.min.js', 'https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.min.js'],
+    ['plyr.css', 'https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css'],
+  ]
+  for (const [file, url] of libs) {
+    if (!existsSync(join(dir, file))) await downloadTo(url, join(dir, file))
+  }
 }
 
 async function importSeries(seriesEntries: string[]) {
@@ -281,6 +294,7 @@ if (noStgit) {
   await ensureAdGuardFilter()
   await ensureTunnelLibs()
   await ensureHelboyData()
+  await ensureHelboyPlayer()
   await linkForkSource(worktreeDir)
   await generateIconDrawables(worktreeDir)
   success('Flat setup complete')
@@ -298,6 +312,7 @@ if (noStgit) {
   await ensureAdGuardFilter()
   await ensureTunnelLibs()
   await ensureHelboyData()
+  await ensureHelboyPlayer()
   await ensureGitExclude(worktreeDir, '.kotlin')
   const linkedAny = await linkForkSource(worktreeDir)
   const generatedAny = await generateIconDrawables(worktreeDir)

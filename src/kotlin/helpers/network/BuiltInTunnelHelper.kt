@@ -102,6 +102,7 @@ object BuiltInTunnelHelper {
                 postState()
                 val configDir = File(context.filesDir, "tunnel").apply { mkdirs() }
                 try { NativeEngine.nativeStop() } catch (_: Throwable) {}
+                try { NativeEngine.nativeSetNativeLibDir(context.applicationInfo.nativeLibraryDir) } catch (_: Throwable) {}
                 val ok = NativeEngine.nativeStart(
                     protocol = tunnelProtocol(),
                     mode = 0,
@@ -127,7 +128,26 @@ object BuiltInTunnelHelper {
                     accessToken = "",
                     accessEmail = "",
                     routesFile = "",
-                    routesInline = ""
+                    routesInline = "",
+                    torMode = 0,
+                    torBridges = 0,
+                    torBridgeLines = "",
+                    engineLog = 3,
+                    backend = InuConfig.BUILT_IN_TUNNEL_BACKEND.value,
+                    torSocksPort = 0,
+                    torHttpPort = 0,
+                    psiphonThroughTunnel = false,
+                    psiphonConfig = "",
+                    psiphonRegion = InuConfig.BUILT_IN_TUNNEL_PSIPHON_REGION.value,
+                    psiphonSocksPort = 0,
+                    psiphonHttpPort = 0,
+                    tunTcpSndbuf = 0,
+                    tunTcpRcvbuf = 0,
+                    tunTcpAutoTuning = false,
+                    t2sLog = 0,
+                    tunEngine = 0,
+                    tunMtu = 0,
+                    tunDnsServers = ""
                 )
                 if (!ok) {
                     onFailed(NativeEngine.nativeGetLastError().ifBlank { "engine start failed" })

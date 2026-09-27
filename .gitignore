@@ -23,3 +23,6 @@ desktop.ini
 # not sure if this is needed, but it seems to be
 entinyBot/
 entinyProto/
+src/res/assets/helboy_player/hls.min.js
+src/res/assets/helboy_player/plyr.min.js
+src/res/assets/helboy_player/plyr.css

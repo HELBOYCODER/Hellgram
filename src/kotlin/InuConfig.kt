@@ -410,6 +410,12 @@ object InuConfig {
     val BUILT_IN_TUNNEL_IP = IntItem("built_in_tunnel_ip", 0)
 
     @JvmField
+    val BUILT_IN_TUNNEL_BACKEND = IntItem("built_in_tunnel_backend", 0)
+
+    @JvmField
+    val BUILT_IN_TUNNEL_PSIPHON_REGION = StringItem("built_in_tunnel_psiphon_region", "")
+
+    @JvmField
     val HELBOY_TV = BoolItem("helboy_tv", false)
 
     @JvmField
