@@ -116,6 +116,11 @@ export const forkSyncFiles: ForkSyncFile[] = [
     target: 'TMessagesProj/src/main/assets',
   },
   {
+    source: 'src/res/assets/helboy_player',
+    target: 'TMessagesProj/src/main/assets/helboy_player',
+    directory: true,
+  },
+  {
     source: 'src/res/raw/*',
     target: 'TMessagesProj/src/main/res/raw',
   },
