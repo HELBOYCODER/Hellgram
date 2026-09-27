@@ -27,7 +27,7 @@ class TunnelSettingsActivity : SettingsPageActivity() {
     }
 
     override fun onFragmentDestroy() {
-        NotificationCenter.getGlobalInstance().removeObserver(observer)
+        NotificationCenter.getGlobalInstance().removeObserver(observer, NotificationCenter.proxySettingsChanged)
         super.onFragmentDestroy()
     }
 
@@ -168,11 +168,12 @@ class TunnelSettingsActivity : SettingsPageActivity() {
     }
 
     private fun showPeerDialog() {
-        val input = EditText(this)
+        val ctx = parentActivity ?: return
+        val input = EditText(ctx)
         input.hint = "188.116.33.145:894"
         input.setText(InuConfig.BUILT_IN_TUNNEL_PEER.value)
         input.inputType = InputType.TYPE_CLASS_TEXT
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(ctx, resourceProvider)
             .setTitle(LocaleController.getString(R.string.InuTunnelPeer))
             .setView(input)
             .setPositiveButton(LocaleController.getString(R.string.InuTunnelPeerSave)) { _, _ ->
@@ -190,8 +191,9 @@ class TunnelSettingsActivity : SettingsPageActivity() {
     }
 
     private fun showLogsDialog() {
+        val ctx = parentActivity ?: return
         val text = BuiltInTunnelHelper.logsText().ifBlank { "—" }
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(ctx, resourceProvider)
             .setTitle(LocaleController.getString(R.string.InuTunnelLogs))
             .setMessage(text.take(4000))
             .setPositiveButton(LocaleController.getString(R.string.Done), null)
