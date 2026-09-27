@@ -1565,7 +1565,7 @@
     <string name="InuTunnelProtoMim">MASQUE inside MASQUE</string>
     <string name="InuTunnelProtoWireGuard">WireGuard</string>
     <string name="InuTunnelProtocol">Protocol</string>
-    <string name="InuTunnelStatusConnected">Connected via %1$s</string>
+    <string name="InuTunnelStatusConnected" formatted="false">Connected via %1$s</string>
     <string name="InuTunnelStatusConnecting">Connecting…</string>
     <string name="InuTunnelStatusOff">Disconnected</string>
     <string name="InuTunnelConnect">Connect</string>
@@ -1583,11 +1583,11 @@
     <string name="InuTunnelScanStealth">Stealth</string>
     <string name="InuTunnelScanThorough">Thorough</string>
     <string name="InuTunnelScanTurbo">Turbo</string>
-    <string name="InuTunnelStatusFailed">Failed: %1$s</string>
+    <string name="InuTunnelStatusFailed" formatted="false">Failed: %1$s</string>
     <string name="InuTunnelEch">ECH (encrypted SNI)</string>
     <string name="InuTunnelEchInfo">Hide the Server Name Indication in the TLS handshake. Keep on for censorship evasion.</string>
     <string name="InuTunnelFragment">Fragment ClientHello</string>
-    <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel won't connect on a heavily censored network.</string>
+    <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel cannot connect on a heavily censored network.</string>
     <string name="InuTunnelH2">HTTP/2 transport</string>
     <string name="InuTunnelH2Info">Use HTTP/2 instead of HTTP/3 (QUIC) for MASQUE. Try this if QUIC is blocked.</string>
     <string name="InuTunnelIp">IP version</string>

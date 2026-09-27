@@ -1571,7 +1571,7 @@
     <string name="InuTunnelProtoMim">MASQUE inside MASQUE</string>
     <string name="InuTunnelStatusOff">Disconnected</string>
     <string name="InuTunnelStatusConnecting">Connecting…</string>
-    <string name="InuTunnelStatusConnected">Connected via %1$s</string>
+    <string name="InuTunnelStatusConnected" formatted="false">Connected via %1$s</string>
     <string name="InuHelboyTv">Helboy TV</string>
     <string name="InuHelboyTvInfo">Live TV, radio and webcams — play through Telegram</string>
     <string name="InuHelboySectionTv">TV channels</string>
@@ -1585,7 +1585,7 @@
     <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuTunnelConnect">Connect</string>
     <string name="InuTunnelDisconnect">Disconnect</string>
-    <string name="InuTunnelStatusFailed">Failed: %1$s</string>
+    <string name="InuTunnelStatusFailed" formatted="false">Failed: %1$s</string>
     <string name="InuTunnelScan">Endpoint scan</string>
     <string name="InuTunnelScanInfo">Stronger modes are slower but find reachable servers on censored networks. Restart the tunnel after changing.</string>
     <string name="InuTunnelScanTurbo">Turbo</string>
@@ -1601,7 +1601,7 @@
     <string name="InuTunnelLogs">Engine log</string>
     <string name="InuTunnelObfuscation">Obfuscation</string>
     <string name="InuTunnelFragment">Fragment ClientHello</string>
-    <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel won't connect on a heavily censored network.</string>
+    <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel cannot connect on a heavily censored network.</string>
     <string name="InuTunnelEch">ECH (encrypted SNI)</string>
     <string name="InuTunnelEchInfo">Hide the Server Name Indication in the TLS handshake. Keep on for censorship evasion.</string>
     <string name="InuTunnelH2">HTTP/2 transport</string>
