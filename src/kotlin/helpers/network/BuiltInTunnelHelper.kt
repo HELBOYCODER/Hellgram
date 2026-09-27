@@ -133,7 +133,7 @@ object BuiltInTunnelHelper {
                     onFailed(NativeEngine.nativeGetLastError().ifBlank { "engine start failed" })
                     return@Thread
                 }
-                val deadline = SystemClock.elapsedRealtime() + 25000
+                val deadline = SystemClock.elapsedRealtime() + 45000
                 while (SystemClock.elapsedRealtime() < deadline) {
                     if (!InuConfig.BUILT_IN_TUNNEL.value) {
                         starting = false
@@ -152,7 +152,7 @@ object BuiltInTunnelHelper {
                     }
                     Thread.sleep(350)
                 }
-                onFailed("timeout")
+                onFailed("timeout — try Stealth or Ironclad scan, or set a custom endpoint")
             } catch (e: Throwable) {
                 Log.e(TAG, "tunnel start error", e)
                 onFailed(e.message ?: "error")
