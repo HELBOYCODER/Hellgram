@@ -204,6 +204,7 @@ async function ensureHelboyPlayer() {
     ['hls.min.js', 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js'],
     ['plyr.min.js', 'https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.min.js'],
     ['plyr.css', 'https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css'],
+    ['plyr.svg', 'https://cdn.plyr.io/3.7.8/plyr.svg'],
   ]
   for (const [file, url] of libs) {
     if (!existsSync(join(dir, file))) await downloadTo(url, join(dir, file))

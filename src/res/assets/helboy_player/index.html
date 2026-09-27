@@ -49,21 +49,35 @@
   stage.appendChild(video);
   try {
     if (typeof Plyr !== 'undefined') {
-      new Plyr(video, { controls: ['play-large','play','progress','mute','volume','settings','pip','airplay','fullscreen'] });
+      new Plyr(video, { iconUrl: 'plyr.svg', controls: ['play-large','play','progress','mute','volume','settings','pip','airplay','fullscreen'] });
     }
   } catch (e) {}
 
   if (Hls.isSupported()) {
     var hls = new Hls({ maxBufferLength: 30 });
+    var netRetries = 0, mediaRetries = 0, parsed = false, dead = false;
+    function giveUp() { dead = true; hls.destroy(); fail('این کانال در دسترس نیست — Channel unavailable'); }
     hls.loadSource(stream);
     hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function(){}); });
-    hls.on(Hls.Events.ERROR, function (ev, data) {
-      if (!data.fatal) return;
-      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-      else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-      else { hls.destroy(); fail('Playback error'); }
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      parsed = true;
+      video.play().catch(function(){});
     });
+    hls.on(Hls.Events.ERROR, function (ev, data) {
+      if (!data.fatal || dead) return;
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR && netRetries < 3) {
+        netRetries++;
+        var manifestLevel = data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
+          data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
+          data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR;
+        if (manifestLevel) hls.loadSource(stream); else hls.startLoad();
+      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRetries < 2) {
+        mediaRetries++; hls.recoverMediaError();
+      } else { giveUp(); }
+    });
+    // Watchdog: a manifest that never parses (CORS block, dead host, blackholed
+    // packets) can leave hls.js idle without a fatal event — surface an error.
+    setTimeout(function () { if (!parsed && !dead) giveUp(); }, 15000);
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = stream;
   } else {
