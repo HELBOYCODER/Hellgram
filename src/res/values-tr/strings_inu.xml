@@ -1546,7 +1546,6 @@
     <string name="InuOnlineDots">Renkli çevrim içi noktaları</string>
     <string name="InuOnlineDotsInfo">Çevrim içi noktasını mavi gösterin ve bir kişi çevrim dışı olduğunda gizlemek yerine sarı veya kırmızıya boyayın — son 20 dakika içinde sarı, son bir saat içinde kırmızı.</string>
     <string name="InuBuiltInTunnel">Entiny Tunnel</string>
-    <string name="InuBuiltInTunnelInfo">Built-in proxy for all connections</string>
     <string name="InuHelboyAddFavorite">Add to favorites</string>
     <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1564,8 +1563,23 @@
     <string name="InuTunnelProtoMim">MASQUE inside MASQUE</string>
     <string name="InuTunnelProtoWireGuard">WireGuard</string>
     <string name="InuTunnelProtocol">Protocol</string>
-    <string name="InuTunnelProtocolFooter">Routes all Telegram traffic through an encrypted tunnel. No server or subscription needed. While enabled it overrides manual proxies; connection issues are reported silently and fall back to your usual settings.</string>
     <string name="InuTunnelStatusConnected">Connected via %1$s</string>
     <string name="InuTunnelStatusConnecting">Connecting…</string>
     <string name="InuTunnelStatusOff">Disconnected</string>
+    <string name="InuTunnelConnect">Connect</string>
+    <string name="InuTunnelDisconnect">Disconnect</string>
+    <string name="InuTunnelLogs">Engine log</string>
+    <string name="InuTunnelPeer">Connection endpoint</string>
+    <string name="InuTunnelPeerClear">Clear</string>
+    <string name="InuTunnelPeerInfo">Optional ip:port from a WARP endpoint scanner (e.g. Parvaz Scanner). Leave empty for automatic discovery.</string>
+    <string name="InuTunnelPeerSave">Save</string>
+    <string name="InuTunnelPeerSet">Set custom endpoint</string>
+    <string name="InuTunnelScan">Endpoint scan</string>
+    <string name="InuTunnelScanBalanced">Balanced</string>
+    <string name="InuTunnelScanInfo">Stronger modes are slower but find reachable servers on censored networks. Restart the tunnel after changing.</string>
+    <string name="InuTunnelScanIronclad">Ironclad</string>
+    <string name="InuTunnelScanStealth">Stealth</string>
+    <string name="InuTunnelScanThorough">Thorough</string>
+    <string name="InuTunnelScanTurbo">Turbo</string>
+    <string name="InuTunnelStatusFailed">Failed: %1$s</string>
 </resources>

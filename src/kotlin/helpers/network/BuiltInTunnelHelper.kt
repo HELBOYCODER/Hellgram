@@ -49,12 +49,30 @@ object BuiltInTunnelHelper {
     fun isActive(): Boolean = InuConfig.BUILT_IN_TUNNEL.value && engineRunning
 
     @JvmStatic
+    fun isStarting(): Boolean = starting
+
+    @JvmStatic
     fun statusText(): String = lastStatus
+
+    @JvmStatic
+    fun logsText(): String = try { NativeEngine.nativeGetLogs() } catch (_: Throwable) { "" }
 
     @JvmStatic
     fun setEnabled(enabled: Boolean) {
         InuConfig.BUILT_IN_TUNNEL.value = enabled
         if (enabled) start() else stop()
+    }
+
+    @JvmStatic
+    fun connect() {
+        InuConfig.BUILT_IN_TUNNEL.value = true
+        start()
+    }
+
+    @JvmStatic
+    fun disconnect() {
+        InuConfig.BUILT_IN_TUNNEL.value = false
+        stop()
     }
 
     @JvmStatic
@@ -88,7 +106,7 @@ object BuiltInTunnelHelper {
                     protocol = tunnelProtocol(),
                     mode = 0,
                     lanSharing = false,
-                    scanMode = 0,
+                    scanMode = InuConfig.BUILT_IN_TUNNEL_SCAN.value,
                     ipVersion = 4,
                     quickReconnect = true,
                     noizeProfile = "balanced",
@@ -99,7 +117,7 @@ object BuiltInTunnelHelper {
                     fragMaxDelay = 10,
                     socksPort = SOCKS_PORT,
                     httpPort = HTTP_PORT,
-                    forcePeer = "",
+                    forcePeer = InuConfig.BUILT_IN_TUNNEL_PEER.value,
                     configPath = File(configDir, "aether.toml").absolutePath,
                     h2Enabled = true,
                     echEnabled = true,
