@@ -1597,4 +1597,20 @@
     <string name="InuTunnelScanThorough">Thorough</string>
     <string name="InuTunnelScanTurbo">Turbo</string>
     <string name="InuTunnelStatusFailed">Failed: %1$s</string>
+    <string name="InuTunnelEch">ECH (encrypted SNI)</string>
+    <string name="InuTunnelEchInfo">Hide the Server Name Indication in the TLS handshake. Keep on for censorship evasion.</string>
+    <string name="InuTunnelFragment">Fragment ClientHello</string>
+    <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel won't connect on a heavily censored network.</string>
+    <string name="InuTunnelH2">HTTP/2 transport</string>
+    <string name="InuTunnelH2Info">Use HTTP/2 instead of HTTP/3 (QUIC) for MASQUE. Try this if QUIC is blocked.</string>
+    <string name="InuTunnelIp">IP version</string>
+    <string name="InuTunnelIpDual">Dual</string>
+    <string name="InuTunnelIpV4">IPv4</string>
+    <string name="InuTunnelIpV6">IPv6</string>
+    <string name="InuTunnelNoize">Obfuscation profile</string>
+    <string name="InuTunnelNoizeAggressive">Aggressive</string>
+    <string name="InuTunnelNoizeBalanced">Balanced</string>
+    <string name="InuTunnelNoizeLight">Light</string>
+    <string name="InuTunnelNoizeNone">None</string>
+    <string name="InuTunnelObfuscation">Obfuscation</string>
 </resources>

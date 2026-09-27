@@ -62,6 +62,23 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         }
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelScanInfo)))
 
+        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelObfuscation)))
+        items.add(mkTwoLineCheckItem(TOGGLE_FRAGMENT, R.string.InuTunnelFragment, R.string.InuTunnelFragmentInfo, InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value))
+        items.add(mkTwoLineCheckItem(TOGGLE_ECH, R.string.InuTunnelEch, R.string.InuTunnelEchInfo, InuConfig.BUILT_IN_TUNNEL_ECH.value))
+        items.add(mkTwoLineCheckItem(TOGGLE_H2, R.string.InuTunnelH2, R.string.InuTunnelH2Info, InuConfig.BUILT_IN_TUNNEL_H2.value))
+        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelNoize)))
+        for ((index, labelRes) in NOIZE_LABELS.withIndex()) {
+            val selected = InuConfig.BUILT_IN_TUNNEL_NOIZE.value == NOIZE_VALUES[index]
+            items.add(UItem.asRadio(NOIZE_BASE + index, LocaleController.getString(labelRes))
+                .also { it.checked = selected })
+        }
+        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelIp)))
+        for ((index, labelRes) in IP_LABELS.withIndex()) {
+            val selected = InuConfig.BUILT_IN_TUNNEL_IP.value == index
+            items.add(UItem.asRadio(IP_BASE + index, LocaleController.getString(labelRes))
+                .also { it.checked = selected })
+        }
+
         items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelPeer)))
         val peer = InuConfig.BUILT_IN_TUNNEL_PEER.value
         items.add(UItem.asButton(BUTTON_PEER, R.drawable.inu_tabler_server, LocaleController.getString(R.string.InuTunnelPeerSet), if (peer.isEmpty()) "—" else peer))
@@ -93,6 +110,42 @@ class TunnelSettingsActivity : SettingsPageActivity() {
             item.id == BUTTON_PEER -> showPeerDialog()
 
             item.id == BUTTON_LOGS -> showLogsDialog()
+
+            item.id == TOGGLE_FRAGMENT -> {
+                InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value = InuConfig.BUILT_IN_TUNNEL_FRAGMENT.toggle()
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+
+            item.id == TOGGLE_ECH -> {
+                InuConfig.BUILT_IN_TUNNEL_ECH.value = InuConfig.BUILT_IN_TUNNEL_ECH.toggle()
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+
+            item.id == TOGGLE_H2 -> {
+                InuConfig.BUILT_IN_TUNNEL_H2.value = InuConfig.BUILT_IN_TUNNEL_H2.toggle()
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+
+            item.id in NOIZE_BASE until NOIZE_BASE + NOIZE_LABELS.size -> {
+                val next = NOIZE_VALUES[item.id - NOIZE_BASE]
+                if (InuConfig.BUILT_IN_TUNNEL_NOIZE.value != next) {
+                    InuConfig.BUILT_IN_TUNNEL_NOIZE.value = next
+                    BuiltInTunnelHelper.restartIfNeeded()
+                    listView?.adapter?.update(true)
+                }
+            }
+
+            item.id in IP_BASE until IP_BASE + IP_LABELS.size -> {
+                val next = item.id - IP_BASE
+                if (InuConfig.BUILT_IN_TUNNEL_IP.value != next) {
+                    InuConfig.BUILT_IN_TUNNEL_IP.value = next
+                    BuiltInTunnelHelper.restartIfNeeded()
+                    listView?.adapter?.update(true)
+                }
+            }
 
             item.id in PROTOCOL_BASE until PROTOCOL_BASE + PROTOCOL_LABELS.size -> {
                 val protocol = item.id - PROTOCOL_BASE
@@ -149,8 +202,25 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         private val BUTTON_CONNECT = InuUtils.generateId()
         private val BUTTON_PEER = InuUtils.generateId()
         private val BUTTON_LOGS = InuUtils.generateId()
+        private val TOGGLE_FRAGMENT = InuUtils.generateId()
+        private val TOGGLE_ECH = InuUtils.generateId()
+        private val TOGGLE_H2 = InuUtils.generateId()
         private val PROTOCOL_BASE = InuUtils.generateId()
         private val SCAN_BASE = InuUtils.generateId()
+        private val NOIZE_BASE = InuUtils.generateId()
+        private val IP_BASE = InuUtils.generateId()
+        private val NOIZE_VALUES = arrayOf("none", "light", "balanced", "aggressive")
+        private val NOIZE_LABELS = intArrayOf(
+            R.string.InuTunnelNoizeNone,
+            R.string.InuTunnelNoizeLight,
+            R.string.InuTunnelNoizeBalanced,
+            R.string.InuTunnelNoizeAggressive,
+        )
+        private val IP_LABELS = intArrayOf(
+            R.string.InuTunnelIpV4,
+            R.string.InuTunnelIpV6,
+            R.string.InuTunnelIpDual,
+        )
         private val PROTOCOL_LABELS = intArrayOf(
             R.string.InuTunnelProtoMasque,
             R.string.InuTunnelProtoWireGuard,
