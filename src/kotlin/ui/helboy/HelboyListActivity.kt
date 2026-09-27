@@ -30,7 +30,7 @@ class HelboyListActivity : SettingsPageActivity() {
     private val countryCodes = HashMap<Int, String>()
     private val channelsById = HashMap<Int, HelboyChannel>()
 
-    fun configure(mode: Mode, kind: HelboyKind, country: String): HelboyListActivity = apply {
+    private fun configure(mode: Mode, kind: HelboyKind, country: String): HelboyListActivity = apply {
         this.mode = mode
         this.kind = kind
         this.country = country
