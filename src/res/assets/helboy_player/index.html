@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Helboy TV</title>
+<link rel="stylesheet" href="plyr.css">
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#ddd;font-family:system-ui,sans-serif;overflow:hidden}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  video,#frame{width:100%;height:100%}
+  iframe{border:0}
+  #msg{position:fixed;inset:auto 0 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:#111;text-align:center;font-size:14px;display:none}
+  #msg button{margin-left:10px;background:#333;color:#eee;border:0;border-radius:8px;padding:7px 14px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="msg"><span id="msgtext"></span><button id="retry" style="display:none">Retry</button></div>
+<script src="hls.min.js"></script>
+<script src="plyr.min.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(location.hash.slice(1));
+  var stream = params.get('u'), yt = params.get('y');
+  var stage = document.getElementById('stage');
+  var msg = document.getElementById('msg'), msgtext = document.getElementById('msgtext'), retry = document.getElementById('retry');
+  function fail(text) {
+    msgtext.textContent = text;
+    msg.style.display = 'block';
+    retry.style.display = 'inline-block';
+  }
+  retry.onclick = function () { location.reload(); };
+
+  if (yt) {
+    var f = document.createElement('iframe');
+    f.id = 'frame';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    f.src = 'https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&playsinline=1';
+    stage.appendChild(f);
+    return;
+  }
+  if (!stream) { fail('No stream'); return; }
+
+  var video = document.createElement('video');
+  video.playsInline = true;
+  video.autoplay = true;
+  stage.appendChild(video);
+  try {
+    if (typeof Plyr !== 'undefined') {
+      new Plyr(video, { controls: ['play-large','play','progress','mute','volume','settings','pip','airplay','fullscreen'] });
+    }
+  } catch (e) {}
+
+  if (Hls.isSupported()) {
+    var hls = new Hls({ maxBufferLength: 30 });
+    hls.loadSource(stream);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function(){}); });
+    hls.on(Hls.Events.ERROR, function (ev, data) {
+      if (!data.fatal) return;
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+      else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+      else { hls.destroy(); fail('Playback error'); }
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = stream;
+  } else {
+    video.src = stream;
+  }
+  video.onerror = function () { fail('Stream failed to load'); };
+})();
+</script>
+</body>
+</html>
