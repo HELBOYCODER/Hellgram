@@ -137,16 +137,16 @@ object BuiltInTunnelHelper {
                     torSocksPort = 0,
                     torHttpPort = 0,
                     psiphonThroughTunnel = false,
-                    psiphonConfig = "",
+                    psiphonConfig = """{"FCAETransport":0}""",
                     psiphonRegion = InuConfig.BUILT_IN_TUNNEL_PSIPHON_REGION.value,
                     psiphonSocksPort = 0,
                     psiphonHttpPort = 0,
-                    tunTcpSndbuf = 0,
-                    tunTcpRcvbuf = 0,
+                    tunTcpSndbuf = 256000,
+                    tunTcpRcvbuf = 256000,
                     tunTcpAutoTuning = false,
                     t2sLog = 0,
                     tunEngine = 0,
-                    tunMtu = 0,
+                    tunMtu = 1500,
                     tunDnsServers = ""
                 )
                 if (!ok) {
@@ -170,9 +170,20 @@ object BuiltInTunnelHelper {
                         onConnected("127.0.0.1:$SOCKS_PORT")
                         return@Thread
                     }
+                    val stateName = when (state) {
+                        1 -> "provisioning"; 2 -> "scanning"; 3 -> "connecting"; 6 -> "reconnecting"
+                        else -> "state $state"
+                    }
+                    val msg = try { NativeEngine.nativeGetStatusMsg() } catch (_: Throwable) { "" }
+                    val shown = if (msg.isNotBlank()) "$stateName: $msg" else stateName
+                    if (shown != lastStatus) {
+                        lastStatus = shown
+                        postState()
+                    }
                     Thread.sleep(350)
                 }
-                onFailed("timeout — try Stealth or Ironclad scan, or set a custom endpoint")
+                val tail = try { NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ") } catch (_: Throwable) { "" }
+                onFailed("timeout ($lastStatus) ${tail.take(220)}")
             } catch (e: Throwable) {
                 Log.e(TAG, "tunnel start error", e)
                 onFailed(e.message ?: "error")
