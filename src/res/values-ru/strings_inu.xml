@@ -1621,4 +1621,8 @@
     <string name="InuTunnelNoizeLight">Light</string>
     <string name="InuTunnelNoizeNone">None</string>
     <string name="InuTunnelObfuscation">Obfuscation</string>
+    <string name="InuCopyLogs">Copy logs</string>
+    <string name="InuCopyLogsInfo">Copies a full report: connection state, port checks, proxy handshake test, bridge status and the engine log.</string>
+    <string name="InuLogsCopied">Logs copied</string>
+    <string name="InuTranslationSource">Source language</string>
 </resources>

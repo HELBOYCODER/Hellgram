@@ -87,6 +87,9 @@ object BuiltInTunnelHelper {
                 // "listener accepts but forwards nothing" failure.
                 if (probeThroughProxy(3500)) {
                     failures = 0
+                    // entiny: tunnel healthy again — give the auto-retry budget back so a later
+                    // drop still gets its 3 reconnect attempts.
+                    if (autoRetries > 0) autoRetries = 0
                     continue
                 }
                 failures++
@@ -117,7 +120,11 @@ object BuiltInTunnelHelper {
             clearMediaRoute()
             start()
         } finally {
-            AndroidUtilities.runOnUIThread { restarting = false }
+            // entiny: clear the flag synchronously — start() spawns its own thread and the
+            // engine start path checks nothing about `restarting`, but leaving it set until
+            // the next main-loop pass raced with onFailed()'s auto-retry and swallowed it
+            // (retry saw restarting==true and bailed → tunnel stuck "reconnecting" forever).
+            restarting = false
         }
     }
 
@@ -445,6 +452,9 @@ object BuiltInTunnelHelper {
         // entiny: a failure right after a network transition is usually transient. Retry with
         // backoff instead of switching the tunnel off for the rest of the session (which is what
         // made the old build look like "reconnect is broken" after wifi<->mobile switches).
+        // entiny: onFailed can fire for BOTH fresh starts and reconnects — retry on both, and
+        // reset autoRetries whenever the tunnel stayed healthy for a while (watchdog resets it
+        // via probe), so an unlucky streak doesn't permanently disable reconnection.
         if (InuConfig.BUILT_IN_TUNNEL.value && autoRetries < MAX_AUTO_RETRIES) {
             autoRetries++
             lastStatus = "retrying ($autoRetries/$MAX_AUTO_RETRIES): $error"

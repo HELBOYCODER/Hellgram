@@ -31,8 +31,9 @@ object TranscribeHelper {
     private val inFlight = ConcurrentHashMap<String, Boolean>()
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
 
-    // entiny: dedicated thread pool avoids stalling Utilities.globalQueue during long uploads
-    private val worker: ExecutorService = Executors.newFixedThreadPool(2) { r ->
+    // entiny: dedicated thread pool avoids stalling Utilities.globalQueue during long uploads;
+    // sized 4 so several voice notes pressed in a row (A-button spam) transcribe concurrently
+    private val worker: ExecutorService = Executors.newFixedThreadPool(4) { r ->
         Thread(r, "inu-transcribe").apply { isDaemon = true }
     }
 
