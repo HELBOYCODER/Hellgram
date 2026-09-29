@@ -694,7 +694,7 @@ object InuConfig {
     val AI_TRANSCRIBE_ENABLED = BoolItem("ai_transcribe_enabled", true)
 
     @JvmField
-    val AI_TRANSCRIBE_PROVIDER = IntItem("ai_transcribe_provider", TRANSCRIBE_PROVIDER_SOKHAN)
+    val AI_TRANSCRIBE_PROVIDER = IntItem("ai_transcribe_provider", TRANSCRIBE_PROVIDER_GROQ)
 
     @JvmField
     val AI_TRANSCRIBE_GROQ_KEY = StringItem("ai_transcribe_groq_key", "", exportable = false)

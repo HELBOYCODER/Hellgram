@@ -163,15 +163,8 @@ object TranscribeHelper {
                 val customPrompt = InuConfig.AI_TRANSCRIBE_PROMPT.value.trim()
 
                 val transcribedText = withRetry {
-                    when (provider) {
-                        InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> desu.inugram.helpers.stt.SokhanSttEngine.transcribe(file)
-                        InuConfig.TRANSCRIBE_PROVIDER_GROQ -> transcribeGroq(file, fileName, mime, customPrompt)
-                        InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> transcribeGemini(file, mime, customPrompt)
-                        InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> transcribeOpenAI(file, fileName, mime, customPrompt)
-                        InuConfig.TRANSCRIBE_PROVIDER_CF -> transcribeCloudflare(file, customPrompt)
-                        InuConfig.TRANSCRIBE_PROVIDER_CUSTOM -> transcribeCustom(file, fileName, mime, customPrompt)
-                        else -> desu.inugram.helpers.stt.SokhanSttEngine.transcribe(file)
-                    }
+                    tryProvider(provider, file, fileName, mime, customPrompt)
+                        ?: tryFallbackChain(provider, file, fileName, mime, customPrompt)
                 }
 
                 AndroidUtilities.runOnUIThread {
@@ -214,6 +207,55 @@ object TranscribeHelper {
                 cancelled.remove(key)
             }
         }
+    }
+
+    // entiny: try a single provider, return null if not configured or failed
+    private fun tryProvider(provider: Int, file: File, fileName: String, mime: String, prompt: String): String? {
+        return try {
+            val result = when (provider) {
+                InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> desu.inugram.helpers.stt.SokhanSttEngine.transcribe(file)
+                InuConfig.TRANSCRIBE_PROVIDER_GROQ -> transcribeGroq(file, fileName, mime, prompt)
+                InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> transcribeGemini(file, mime, prompt)
+                InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> transcribeOpenAI(file, fileName, mime, prompt)
+                InuConfig.TRANSCRIBE_PROVIDER_CF -> transcribeCloudflare(file, prompt)
+                InuConfig.TRANSCRIBE_PROVIDER_CUSTOM -> transcribeCustom(file, fileName, mime, prompt)
+                else -> return null
+            }
+            result?.takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            FileLog.e("TranscribeHelper fallback: provider $provider failed", e)
+            null
+        }
+    }
+
+    // entiny: when primary provider fails, try remaining providers in priority order
+    private fun tryFallbackChain(primary: Int, file: File, fileName: String, mime: String, prompt: String): String {
+        val fallbackOrder = listOf(
+            InuConfig.TRANSCRIBE_PROVIDER_GROQ,
+            InuConfig.TRANSCRIBE_PROVIDER_GEMINI,
+            InuConfig.TRANSCRIBE_PROVIDER_OPENAI,
+            InuConfig.TRANSCRIBE_PROVIDER_CF,
+            InuConfig.TRANSCRIBE_PROVIDER_CUSTOM,
+            InuConfig.TRANSCRIBE_PROVIDER_SOKHAN
+        )
+        for (fb in fallbackOrder) {
+            if (fb == primary) continue
+            if (!isProviderConfiguredFor(fb)) continue
+            val result = tryProvider(fb, file, fileName, mime, prompt)
+            if (!result.isNullOrBlank()) return result
+        }
+        throw IOException("No transcription provider is configured. Add an API key in Settings → AI → AI Providers.")
+    }
+
+    private fun isProviderConfiguredFor(provider: Int): Boolean = when (provider) {
+        InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> true
+        InuConfig.TRANSCRIBE_PROVIDER_GROQ -> InuConfig.AI_PROVIDER_GROQ_KEY.value.isNotBlank()
+        InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> InuConfig.AI_PROVIDER_GEMINI_KEY.value.isNotBlank()
+        InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> InuConfig.AI_PROVIDER_OPENAI_KEY.value.isNotBlank()
+        InuConfig.TRANSCRIBE_PROVIDER_CF ->
+            InuConfig.AI_TRANSCRIBE_CF_ACCOUNT_ID.value.isNotBlank() && InuConfig.AI_TRANSCRIBE_CF_API_TOKEN.value.isNotBlank()
+        InuConfig.TRANSCRIBE_PROVIDER_CUSTOM -> InuConfig.AI_TRANSCRIBE_CUSTOM_URL.value.isNotBlank()
+        else -> false
     }
 
     private fun <T> withRetry(block: () -> T): T {
