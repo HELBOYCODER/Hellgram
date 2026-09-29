@@ -89,10 +89,6 @@ object BuiltInTunnelHelper {
         starting = true
         proxyPrefBefore = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false)
         Thread {
-            if (isPortOpen(SOCKS_PORT)) {
-                onConnected("127.0.0.1:$SOCKS_PORT")
-                return@Thread
-            }
             if (!NativeEngine.loadLibrary()) {
                 onFailed("native library missing")
                 return@Thread
@@ -166,7 +162,7 @@ object BuiltInTunnelHelper {
                         onFailed(err.ifBlank { "connection failed" })
                         return@Thread
                     }
-                    if (state == 4 || isPortOpen(SOCKS_PORT)) {
+                    if (state == 4) {
                         onConnected("127.0.0.1:$SOCKS_PORT")
                         return@Thread
                     }
@@ -212,6 +208,11 @@ object BuiltInTunnelHelper {
         Log.i(TAG, "built-in tunnel connected: $status")
         AndroidUtilities.runOnUIThread {
             MessagesController.getGlobalMainSettings().edit { putBoolean("proxy_enabled", true) }
+            for (a in 0 until org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT) {
+                try {
+                    ConnectionsManager.getInstance(a).resumeNetworkMaybe()
+                } catch (_: Throwable) {}
+            }
             ConnectionsManager.setProxySettings(true, "127.0.0.1", SOCKS_PORT, "", "", "")
             desu.inugram.helpers.helboy.HelboyWebViewProxy.applyFromTunnel()
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged)

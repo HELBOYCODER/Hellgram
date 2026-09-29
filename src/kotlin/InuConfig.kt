@@ -398,7 +398,7 @@ object InuConfig {
     val BUILT_IN_TUNNEL_NOIZE = StringItem("built_in_tunnel_noize", "balanced")
 
     @JvmField
-    val BUILT_IN_TUNNEL_FRAGMENT = BoolItem("built_in_tunnel_fragment", false)
+    val BUILT_IN_TUNNEL_FRAGMENT = BoolItem("built_in_tunnel_fragment", true)
 
     @JvmField
     val BUILT_IN_TUNNEL_ECH = BoolItem("built_in_tunnel_ech", true)

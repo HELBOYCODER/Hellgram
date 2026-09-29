@@ -11,17 +11,19 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.j
 index 0000000..0000000 100644
 --- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 +++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-@@ -648,6 +648,9 @@ public class ConnectionsManager extends BaseController {
+@@ -648,6 +648,11 @@ public class ConnectionsManager extends BaseController {
                          proxySettings.getUser(), proxySettings.getPassword(), proxySettings.getSecret());
              }
          }
-+        if (desu.inugram.helpers.network.CensorshipHelper.isTunnelActive()) {
++        if (desu.inugram.helpers.network.BuiltInTunnelHelper.isActive()) {
++            native_setProxySettings(currentAccount, "127.0.0.1", desu.inugram.helpers.network.BuiltInTunnelHelper.SOCKS_PORT, "", "", "");
++        } else if (desu.inugram.helpers.network.CensorshipHelper.isTunnelActive()) {
 +            native_setProxySettings(currentAccount, desu.inugram.helpers.network.CensorshipHelper.tunnelHost(), desu.inugram.helpers.network.CensorshipHelper.tunnelPort(), "", "", desu.inugram.helpers.network.CensorshipHelper.tunnelSecret());
 +        }
          String installer = "";
          try {
              Context context = ApplicationLoader.applicationContext;
-@@ -947,6 +950,14 @@ public class ConnectionsManager extends BaseController {
+@@ -947,6 +952,14 @@ public class ConnectionsManager extends BaseController {
          KeepAliveJob.startJob();
      }
  
@@ -36,12 +38,19 @@ index 0000000..0000000 100644
      public static void setProxySettings(boolean enabled, ProxySettings settings) {
          String address = "";
          int port = 0;
-@@ -974,8 +985,17 @@ public class ConnectionsManager extends BaseController {
+@@ -974,8 +987,24 @@ public class ConnectionsManager extends BaseController {
              WebProxyTransport.stop();
          }
  
 +        boolean useProxy = enabled && settings != null && settings.isValid();
-+        if (desu.inugram.helpers.network.CensorshipHelper.isTunnelActive()) {
++        if (desu.inugram.helpers.network.BuiltInTunnelHelper.isActive()) {
++            useProxy = true;
++            address = "127.0.0.1";
++            port = desu.inugram.helpers.network.BuiltInTunnelHelper.SOCKS_PORT;
++            username = "";
++            password = "";
++            secret = "";
++        } else if (desu.inugram.helpers.network.CensorshipHelper.isTunnelActive()) {
 +            useProxy = true;
 +            address = desu.inugram.helpers.network.CensorshipHelper.tunnelHost();
 +            port = desu.inugram.helpers.network.CensorshipHelper.tunnelPort();

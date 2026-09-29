@@ -195,8 +195,11 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         val text = BuiltInTunnelHelper.logsText().ifBlank { "—" }
         AlertDialog.Builder(ctx, resourceProvider)
             .setTitle(LocaleController.getString(R.string.InuTunnelLogs))
-            .setMessage(text.take(4000))
+            .setMessage(text.takeLast(4000))
             .setPositiveButton(LocaleController.getString(R.string.Done), null)
+            .setNeutralButton(LocaleController.getString(R.string.Copy)) { _, _ ->
+                org.telegram.messenger.AndroidUtilities.addToClipboard(text)
+            }
             .show()
     }
 
