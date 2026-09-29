@@ -102,7 +102,7 @@ object BuiltInTunnelHelper {
             try { NativeEngine.nativeStop() } catch (_: Throwable) {}
             engineRunning = false
             starting = false
-            TunnelSocketRoute.clear()
+            clearMediaRoute()
             start()
         } finally {
             AndroidUtilities.runOnUIThread { restarting = false }
@@ -287,9 +287,15 @@ object BuiltInTunnelHelper {
     private fun stop() {
         stopEngine()
         desu.inugram.helpers.helboy.HelboyWebViewProxy.clear()
-        TunnelSocketRoute.clear()
+        clearMediaRoute()
+        TunnelHttpBridge.stop()
         restoreProxyPref()
         CensorshipHelper.reapply()
+    }
+
+    private fun clearMediaRoute() {
+        TunnelSocketRoute.clear()
+        TunnelHttpBridge.stop()
     }
 
     private fun stopEngine() {
@@ -298,7 +304,7 @@ object BuiltInTunnelHelper {
         starting = false
         lastStatus = ""
         // entiny: never leave the process-wide selector pointing at a dead tunnel
-        TunnelSocketRoute.clear()
+        clearMediaRoute()
     }
 
     // entiny: public reconnect hook for network changes
@@ -316,8 +322,11 @@ object BuiltInTunnelHelper {
         lastStatus = status
         autoRetries = 0
         Log.i(TAG, "built-in tunnel connected: $status")
-        // entiny: install off the UI thread — install() probes the port synchronously
-        TunnelSocketRoute.install(HTTP_PORT)
+        // entiny: install off the UI thread — install() probes the port synchronously.
+        // The bridge is what media3/WebView can actually use: they only speak HTTP proxies, and
+        // both are started against the SOCKS port, which the engine always exposes.
+        val bridgePort = TunnelHttpBridge.ensureStarted(SOCKS_PORT)
+        TunnelSocketRoute.install(if (bridgePort > 0) bridgePort else HTTP_PORT)
         AndroidUtilities.runOnUIThread {
             MessagesController.getGlobalMainSettings().edit { putBoolean("proxy_enabled", true) }
             for (a in 0 until org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT) {
