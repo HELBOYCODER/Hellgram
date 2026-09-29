@@ -33,7 +33,7 @@ class HelboyWebPlayerActivity(
 
     override fun onFragmentCreate(): Boolean {
         super.onFragmentCreate()
-        val act = activity ?: return true
+        val act = parentActivity ?: return true
         // Remember and force landscape
         previousOrientation = act.requestedOrientation
         act.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -50,7 +50,7 @@ class HelboyWebPlayerActivity(
     override fun onFragmentDestroy() {
         super.onFragmentDestroy()
         // Restore previous orientation
-        val act = activity
+        val act = parentActivity
         if (act != null && previousOrientation != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
             act.requestedOrientation = previousOrientation
         }
@@ -166,7 +166,7 @@ class HelboyWebPlayerActivity(
     }
 
     private fun hideSystemUI() {
-        val act = activity ?: return
+        val act = parentActivity ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             act.window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -180,7 +180,7 @@ class HelboyWebPlayerActivity(
     }
 
     private fun showSystemUI() {
-        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        parentActivity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
     }
 
     override fun onBackPressed(invoked: Boolean): Boolean {
