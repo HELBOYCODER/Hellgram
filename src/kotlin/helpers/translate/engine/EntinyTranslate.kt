@@ -43,17 +43,22 @@ object EntinyTranslate {
         if (!isActive(account)) return null
         val provider = TranslationProviders.current() ?: GoogleWebProvider
         if (!provider.isConfigured()) {
-            Log.d(TAG, "provider ${provider.nameRes} not configured; falling back to Telegram API")
-            if (configBulletins.add(dialogId)) {
-                NotificationCenter.getGlobalInstance().postNotificationName(
-                    NotificationCenter.showBulletin,
-                    Bulletin.TYPE_ERROR,
-                    LocaleController.getString(R.string.InuTranslateProviderNotConfigured),
-                )
-            }
-            return null
+            Log.d(TAG, "provider ${provider.nameRes} not configured; trying free fallback")
+            return tryFallbackProvider()
         }
         return provider
+    }
+
+    // entiny: free keyless fallback chain when primary provider is not configured or blocked
+    private fun tryFallbackProvider(): TranslationProvider? {
+        // Priority: MyMemory (free, no key) > GoogleWebProvider (may be blocked)
+        if (MyMemoryProvider.isConfigured()) {
+            Log.d(TAG, "fallback to MyMemory (free, no key)")
+            return MyMemoryProvider
+        }
+        // Last resort: GoogleWebProvider (keyless but may be blocked)
+        Log.d(TAG, "fallback to GoogleWebProvider (may be blocked)")
+        return GoogleWebProvider
     }
 
     @JvmStatic

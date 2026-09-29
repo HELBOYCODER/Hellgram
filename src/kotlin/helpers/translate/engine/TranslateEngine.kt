@@ -13,6 +13,8 @@ import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
+import desu.inugram.helpers.translate.engine.ProviderRateLimitException
+
 object TranslateEngine {
 
     private const val TAG = "EntinyTranslate"
@@ -367,6 +369,21 @@ object TranslateEngine {
             try {
                 Log.d(TAG, "start dialog=${job.key.dialogId} msg=${job.key.msgId} provider=${job.provider.id}")
                 result = job.run()
+            } catch (e: ProviderRateLimitException) {
+                // entiny: rate limited - try fallback provider
+                val fallback = tryFallbackProvider(job.provider)
+                if (fallback != null && fallback !== job.provider) {
+                    Log.d(TAG, "rate limited, retrying with fallback ${fallback.id}")
+                    val retryResult = fallback.translate(
+                        (job as TextJob).text,
+                        job.toLang,
+                        (job as TextJob).context
+                    )
+                    val twe = TLRPC.TL_textWithEntities().apply { this.text = retryResult }
+                    result = twe
+                } else {
+                    throw e
+                }
             } catch (e: Exception) {
                 val error = e.message ?: e.javaClass.simpleName
                 Log.d(TAG, "FAIL dialog=${job.key.dialogId} msg=${job.key.msgId} provider=${job.provider.id} error=$error", e)
@@ -467,5 +484,12 @@ object TranslateEngine {
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         }
+    }
+
+    // entiny: fallback provider on rate limit
+    private fun tryFallbackProvider(current: TranslationProvider): TranslationProvider? {
+        if (current !== MyMemoryProvider && MyMemoryProvider.isConfigured()) return MyMemoryProvider
+        if (current !== GoogleWebProvider) return GoogleWebProvider
+        return null
     }
 }

@@ -1,6 +1,9 @@
 package desu.inugram.helpers.network
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.edit
@@ -38,11 +41,45 @@ object BuiltInTunnelHelper {
         private set
 
     private var appContext: Context? = null
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     @JvmStatic
     fun init(context: Context) {
         appContext = context.applicationContext
+        initNetworkCallback(context)
         if (InuConfig.BUILT_IN_TUNNEL.value) start()
+    }
+
+    private fun initNetworkCallback(context: Context) {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+        connectivityManager = cm
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                if (isActive()) {
+                    AndroidUtilities.runOnUIThread { reconnectOnNetworkChange() }
+                }
+            }
+            override fun onLost(network: Network) {
+                // Network lost - engine will reconnect via quickReconnect=true
+            }
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                if (isActive() && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                    // VPN took over - suppress our proxy
+                }
+            }
+        }
+        networkCallback = callback
+        try {
+            cm.registerDefaultNetworkCallback(callback)
+        } catch (_: Throwable) {}
+    }
+
+    private fun reconnectOnNetworkChange() {
+        if (!InuConfig.BUILT_IN_TUNNEL.value || starting) return
+        // Trigger quick reconnect by stopping and starting
+        stopEngine()
+        start()
     }
 
     @JvmStatic
@@ -199,6 +236,15 @@ object BuiltInTunnelHelper {
         engineRunning = false
         starting = false
         lastStatus = ""
+    }
+
+    // entiny: public reconnect hook for network changes
+    @JvmStatic
+    fun reconnect() {
+        if (isActive()) {
+            stopEngine()
+            start()
+        }
     }
 
     private fun onConnected(status: String) {
