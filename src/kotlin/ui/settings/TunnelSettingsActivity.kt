@@ -119,7 +119,8 @@ class TunnelSettingsActivity : SettingsPageActivity() {
             // bridge, engine log) on the clipboard so it can be pasted straight into a chat.
             item.id == BUTTON_COPY_LOGS -> {
                 val report = BuiltInTunnelHelper.diagnosticsText()
-                org.telegram.messenger.AndroidUtilities.addToClipboard(report)                BulletinFactory.of(this).createSimpleBulletin(
+                org.telegram.messenger.AndroidUtilities.addToClipboard(report)
+                BulletinFactory.of(this).createSimpleBulletin(
                     R.raw.done,
                     LocaleController.getString(R.string.InuLogsCopied)
                 ).show()
