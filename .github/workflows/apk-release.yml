@@ -2,6 +2,9 @@ name: Release APK (fork CI, repo keystore)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: release-apk-${{ github.ref }}
