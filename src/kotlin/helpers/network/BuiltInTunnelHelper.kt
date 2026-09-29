@@ -514,7 +514,10 @@ object BuiltInTunnelHelper {
                 val greet = ByteArray(2)
                 if (inp.read(greet) != 2 || greet[0].toInt() != 5 || greet[1].toInt() != 0) return false
                 // CONNECT 1.1.1.1:443
-                out.write(byteArrayOf(5, 1, 0, 1, 1, 1, 1, 1, 0x01, 0xBB)); out.flush()
+                // entiny: 0xBB > Byte.MAX_VALUE, so it must be written as an explicit Byte —
+                // byteArrayOf() cannot coerce an out-of-range int literal and the whole module
+                // failed to compile (this is what broke the release APK build).
+                out.write(byteArrayOf(5, 1, 0, 1, 1, 1, 1, 1, 0x01, 0xBB.toByte())); out.flush()
                 val resp = ByteArray(4)
                 if (inp.read(resp) != 4) return false
                 if (resp[0].toInt() != 5) return false
