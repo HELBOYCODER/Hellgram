@@ -5,7 +5,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
-import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -16,7 +16,7 @@ import org.telegram.messenger.LocaleController
 import org.telegram.messenger.R
 import org.telegram.ui.ActionBar.ActionBar
 import org.telegram.ui.ActionBar.BaseFragment
-import org.telegram.ui.ActionBar.Theme
+import org.telegram.ui.ActionBar.ThemeDescription
 
 // helboy: fullscreen video player with orientation support
 class HelboyWebPlayerActivity(
@@ -29,16 +29,19 @@ class HelboyWebPlayerActivity(
     private var isFullscreen = false
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private var customView: View? = null
+    private var previousOrientation: Int = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
     override fun onFragmentCreate(): Boolean {
         super.onFragmentCreate()
-        // Force landscape for video viewing
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        val act = activity ?: return true
+        // Remember and force landscape
+        previousOrientation = act.requestedOrientation
+        act.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         // Keep screen on during playback
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        // Hide system bars for immersive experience
+        act.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Allow display cutout for immersive video
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            activity?.window?.attributes?.layoutInDisplayCutoutMode =
+            act.window?.attributes?.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
         return true
@@ -46,9 +49,12 @@ class HelboyWebPlayerActivity(
 
     override fun onFragmentDestroy() {
         super.onFragmentDestroy()
-        // Restore portrait orientation
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Restore previous orientation
+        val act = activity
+        if (act != null && previousOrientation != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+            act.requestedOrientation = previousOrientation
+        }
+        act?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         webView?.destroy()
         webView = null
     }
@@ -58,9 +64,6 @@ class HelboyWebPlayerActivity(
         actionBar?.setTitleColor(Color.WHITE)
         actionBar?.setTitle(title)
         actionBar?.setBackButtonImage(R.drawable.ic_ab_back)
-        actionBar?.castMenuActionBar()?.let {
-            it.background = ColorDrawable(Color.parseColor("#FF1A1A2E"))
-        }
 
         val container = FrameLayout(context).apply {
             setBackgroundColor(Color.BLACK)
@@ -68,12 +71,14 @@ class HelboyWebPlayerActivity(
 
         progressBar = ProgressBar(context).apply {
             isIndeterminate = true
-            setIndicatorColor(Color.parseColor("#FF4CAF50"))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                indeterminateTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#FF4CAF50"))
+            }
             visibility = View.VISIBLE
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT,
-                android.view.Gravity.CENTER
+                Gravity.CENTER
             )
         }
         container.addView(progressBar)
@@ -122,10 +127,8 @@ class HelboyWebPlayerActivity(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     ))
-                    // Hide action bar and progress
                     actionBar?.visibility = View.GONE
                     progressBar?.visibility = View.GONE
-                    // Hide system UI
                     hideSystemUI()
                     isFullscreen = true
                 }
@@ -163,14 +166,17 @@ class HelboyWebPlayerActivity(
     }
 
     private fun hideSystemUI() {
-        activity?.window?.decorView?.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        )
+        val act = activity ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            act.window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            )
+        }
     }
 
     private fun showSystemUI() {
