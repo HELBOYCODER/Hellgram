@@ -2,88 +2,242 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Helboy TV</title>
-<link rel="stylesheet" href="plyr.css">
 <style>
-  html,body{margin:0;height:100%;background:#000;color:#ddd;font-family:system-ui,sans-serif;overflow:hidden}
-  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
-  video,#frame{width:100%;height:100%}
-  iframe{border:0}
-  #msg{position:fixed;inset:auto 0 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:#111;text-align:center;font-size:14px;display:none}
-  #msg button{margin-left:10px;background:#333;color:#eee;border:0;border-radius:8px;padding:7px 14px;font-size:14px}
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family:system-ui,-apple-system,sans-serif; color:#fff; }
+  #player { width:100%; height:100%; position:absolute; top:0; left:0; }
+  #overlay { position:absolute; top:0; left:0; right:0; z-index:10; padding:12px 16px;
+             background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%); pointer-events:none; }
+  #ch-name { font-size:16px; font-weight:600; text-shadow:0 1px 3px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #ch-info { font-size:11px; opacity:.7; margin-top:2px; }
+  #buffering { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; display:none; text-align:center; }
+  #buffering .spinner { width:48px; height:48px; border:4px solid rgba(255,255,255,.2); border-top-color:#fff;
+                        border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 10px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  #error-overlay { position:absolute; top:0; left:0; right:0; bottom:0; z-index:20; display:none;
+                   background:rgba(0,0,0,.85); align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:30px; }
+  #error-overlay.show { display:flex; }
+  #error-overlay .icon { font-size:48px; margin-bottom:16px; }
+  #error-overlay .msg { font-size:14px; opacity:.8; margin-bottom:20px; line-height:1.5; }
+  #error-overlay button { background:#e53935; color:#fff; border:none; padding:12px 32px; border-radius:8px;
+                          font-size:15px; font-weight:600; cursor:pointer; }
+  #quality-badge { position:absolute; bottom:70px; right:16px; z-index:10; background:rgba(0,0,0,.6);
+                   padding:4px 10px; border-radius:4px; font-size:11px; pointer-events:none; display:none; }
+  .plyr { --plyr-color: #e53935; }
+  .plyr__controls { padding: 8px 12px !important; }
 </style>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
 </head>
 <body>
-<div id="stage"></div>
-<div id="msg"><span id="msgtext"></span><button id="retry" style="display:none">Retry</button></div>
-<script src="hls.min.js"></script>
-<script src="plyr.min.js"></script>
+<div id="player"><video id="video" playsinline></video></div>
+<div id="overlay"><div id="ch-name"></div><div id="ch-info"></div></div>
+<div id="buffering"><div class="spinner"></div><div style="font-size:13px;opacity:.7">Buffering...</div></div>
+<div id="quality-badge"></div>
+<div id="error-overlay">
+  <div class="icon">📡</div>
+  <div class="msg" id="error-msg">Connection lost. Check your internet.</div>
+  <button id="retry-btn">⟳ Retry</button>
+</div>
 <script>
-(function () {
-  var params = new URLSearchParams(location.hash.slice(1));
-  var stream = params.get('u'), yt = params.get('y');
-  var stage = document.getElementById('stage');
-  var msg = document.getElementById('msg'), msgtext = document.getElementById('msgtext'), retry = document.getElementById('retry');
-  function fail(text) {
-    msgtext.textContent = text;
-    msg.style.display = 'block';
-    retry.style.display = 'inline-block';
-  }
-  retry.onclick = function () { location.reload(); };
+(function(){
+  const video = document.getElementById('video');
+  const chNameEl = document.getElementById('ch-name');
+  const chInfoEl = document.getElementById('ch-info');
+  const bufferingEl = document.getElementById('buffering');
+  const errorOverlay = document.getElementById('error-overlay');
+  const errorMsg = document.getElementById('error-msg');
+  const retryBtn = document.getElementById('retry-btn');
+  const qualityBadge = document.getElementById('quality-badge');
 
-  if (yt) {
-    var f = document.createElement('iframe');
-    f.id = 'frame';
-    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-    f.allowFullscreen = true;
-    f.src = 'https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&playsinline=1';
-    stage.appendChild(f);
+  let hls = null;
+  let player = null;
+  let retryCount = 0;
+  let lastError = '';
+  let currentLevel = -1; // -1 = auto
+  let qualityMenuOpen = false;
+
+  // Parse URL params
+  const hash = location.hash.slice(1);
+  const params = new URLSearchParams(hash.replace(/#/g,'&') + '&' + location.search.slice(1));
+  let streamUrl = params.get('u') || '';
+  let youtubeId = params.get('y') || null;
+  let channelName = params.get('n') || 'Helboy TV';
+
+  // Also handle ?u= and ?n= (from Kotlin Uri.encode)
+  if (!streamUrl) {
+    try {
+      const h = decodeURIComponent(hash);
+      const m1 = h.match(/u=([^&]+)/);
+      const m2 = h.match(/n=([^&]+)/);
+      if (m1) streamUrl = decodeURIComponent(m1[1]);
+      if (m2) channelName = decodeURIComponent(m2[1]);
+    } catch(e) {}
+  }
+  if (!streamUrl && youtubeId) {
+    try {
+      const h = decodeURIComponent(hash);
+      const m = h.match(/y=([^&]+)/);
+      if (m) youtubeId = decodeURIComponent(m[1]);
+    } catch(e) {}
+  }
+
+  chNameEl.textContent = channelName;
+
+  // YouTube embed
+  if (youtubeId) {
+    chInfoEl.textContent = 'YouTube';
+    document.getElementById('player').innerHTML =
+      '<iframe src="https://www.youtube.com/embed/' + youtubeId +
+      '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
+      'style="width:100%;height:100%;border:none" allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>';
     return;
   }
-  if (!stream) { fail('No stream'); return; }
 
-  var video = document.createElement('video');
-  video.playsInline = true;
-  video.autoplay = true;
-  stage.appendChild(video);
-  try {
-    if (typeof Plyr !== 'undefined') {
-      new Plyr(video, { iconUrl: 'plyr.svg', controls: ['play-large','play','progress','mute','volume','settings','pip','airplay','fullscreen'] });
+  if (!streamUrl) { showError('No stream URL provided.'); return; }
+
+  function initPlayer(url) {
+    if (hls) { hls.destroy(); hls = null; }
+    if (player) { player.destroy(); player = null; }
+
+    if (Hls.isSupported()) {
+      hls = new Hls({
+        startLevel: -1, // auto
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 0,
+      });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, function(e, data) {
+        const levels = data.levels;
+        chInfoEl.textContent = 'HLS • ' + levels.length + ' quality levels';
+        video.play().catch(function(){});
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, function(e, data) {
+        const level = hls.levels[data.level];
+        if (level) {
+          const h = level.height || '?';
+          const br = level.bitrate ? Math.round(level.bitrate/1000) + ' kbps' : '';
+          qualityBadge.textContent = (currentLevel === -1 ? 'AUTO ' : '') + h + 'p ' + br;
+          qualityBadge.style.display = 'block';
+          clearTimeout(qualityBadge._timer);
+          qualityBadge._timer = setTimeout(function(){ qualityBadge.style.display = 'none'; }, 3000);
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, function(e, data) {
+        if (data.fatal) {
+          switch(data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              showError('Network error. Retrying...');
+              setTimeout(function(){ hls.startLoad(); }, 3000);
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              showError('Playback error. Recovering...');
+              hls.recoverMediaError();
+              break;
+            default:
+              showError('Fatal error: ' + (data.details || 'unknown'));
+              setTimeout(initPlayer.bind(null, url), 5000);
+              break;
+          }
+        }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS
+      video.src = url;
+      video.addEventListener('loadedmetadata', function(){ video.play().catch(function(){}); });
+    } else {
+      showError('HLS is not supported on this device.');
+      return;
     }
-  } catch (e) {}
 
-  if (Hls.isSupported()) {
-    var hls = new Hls({ maxBufferLength: 30 });
-    var netRetries = 0, mediaRetries = 0, parsed = false, dead = false;
-    function giveUp() { dead = true; hls.destroy(); fail('این کانال در دسترس نیست — Channel unavailable'); }
-    hls.loadSource(stream);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      parsed = true;
-      video.play().catch(function(){});
+    // Init Plyr
+    player = new Plyr(video, {
+      controls: ['play-large','play','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
+      settings: ['speed','quality'],
+      tooltips: { controls: true, seek: true },
+      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+      keyboard: { focused: true, global: true },
+      invertTime: false,
+      displayDuration: true,
+      ratio: '16:9',
     });
-    hls.on(Hls.Events.ERROR, function (ev, data) {
-      if (!data.fatal || dead) return;
-      if (data.type === Hls.ErrorTypes.NETWORK_ERROR && netRetries < 3) {
-        netRetries++;
-        var manifestLevel = data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
-          data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT ||
-          data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR;
-        if (manifestLevel) hls.loadSource(stream); else hls.startLoad();
-      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRetries < 2) {
-        mediaRetries++; hls.recoverMediaError();
-      } else { giveUp(); }
+
+    // Quality menu via Plyr settings
+    if (hls) {
+      hls.on(Hls.Events.MANIFEST_PARSED, function(e, data) {
+        // Build quality levels for Plyr settings
+        const levels = data.levels;
+        if (levels.length > 1) {
+          // Override Plyr quality setting
+          player.options.quality = {
+            default: -1,
+            options: levels.map(function(l, i) { return { value: i, label: (l.height||'?') + 'p' }; }).reverse().concat([{value:-1, label:'Auto'}]),
+            forced: false,
+            onChange: function(quality) {
+              if (hls) {
+                currentLevel = quality;
+                hls.currentLevel = quality;
+              }
+            }
+          };
+        }
+      });
+    }
+
+    // Loading/buffering indicator
+    video.addEventListener('waiting', function(){ bufferingEl.style.display = 'block'; });
+    video.addEventListener('playing', function(){ bufferingEl.style.display = 'none'; });
+    video.addEventListener('canplay', function(){ bufferingEl.style.display = 'none'; });
+
+    // Error handling
+    video.addEventListener('error', function() {
+      showError('Playback error. Retrying...');
+      setTimeout(initPlayer.bind(null, url), 5000);
     });
-    // Watchdog: a manifest that never parses (CORS block, dead host, blackholed
-    // packets) can leave hls.js idle without a fatal event — surface an error.
-    setTimeout(function () { if (!parsed && !dead) giveUp(); }, 15000);
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = stream;
-  } else {
-    video.src = stream;
   }
-  video.onerror = function () { fail('Stream failed to load'); };
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorOverlay.classList.add('show');
+    bufferingEl.style.display = 'none';
+  }
+
+  retryBtn.addEventListener('click', function() {
+    errorOverlay.classList.remove('show');
+    retryCount++;
+    if (retryCount > 10) {
+      showError('Too many retries. Please check your connection.');
+      return;
+    }
+    initPlayer(streamUrl);
+  });
+
+  // Auto-hide overlay after 3s
+  setTimeout(function(){ document.getElementById('overlay').style.opacity = '0'; }, 3000);
+  document.addEventListener('touchstart', function(){
+    const o = document.getElementById('overlay');
+    o.style.transition = 'opacity .3s';
+    o.style.opacity = '1';
+    clearTimeout(o._timer);
+    o._timer = setTimeout(function(){ o.style.opacity = '0'; }, 3000);
+  });
+
+  // Screen orientation lock
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(function(){});
+  }
+
+  initPlayer(streamUrl);
 })();
 </script>
 </body>
