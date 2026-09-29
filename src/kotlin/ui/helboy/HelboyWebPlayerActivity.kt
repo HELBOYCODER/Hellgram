@@ -177,7 +177,7 @@ class HelboyWebPlayerActivity(
         activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
     }
 
-    override fun onBackPressed(): Boolean {
+    override fun onBackPressed(invoked: Boolean): Boolean {
         if (isFullscreen) {
             webView?.evaluateJavascript("document.webkitExitFullscreen()") {}
             webView?.evaluateJavascript(
@@ -186,8 +186,10 @@ class HelboyWebPlayerActivity(
             )
             return true
         }
-        return super.onBackPressed()
+        return super.onBackPressed(invoked)
     }
 
-    override fun getThemeDescriptions() = emptyArray<org.telegram.ui.ActionBar.ThemeDescription>()
+    override fun getThemeDescriptions(): ArrayList<ThemeDescription> {
+        return ArrayList()
+    }
 }
