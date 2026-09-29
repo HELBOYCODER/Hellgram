@@ -72,8 +72,20 @@ object BuiltInTunnelHelper {
                     return@Thread
                 }
                 if (!InuConfig.BUILT_IN_TUNNEL.value || starting || restarting) continue
-                if (!engineRunning) continue
-                if (isPortOpen(SOCKS_PORT) || isPortOpen(HTTP_PORT)) {
+                // entiny: the tunnel is enabled but the engine is down (all retries exhausted).
+                // The watchdog is the only thing left that can bring it back without a manual
+                // toggle, so treat that as a failure too.
+                if (!engineRunning) {
+                    failures++
+                    if (failures < 2) continue
+                    failures = 0
+                    Log.w(TAG, "tunnel enabled but engine down -> restarting")
+                    restart(reason = "engine down")
+                    continue
+                }
+                // entiny: probe the real forwarding path — isPortOpen alone misses the
+                // "listener accepts but forwards nothing" failure.
+                if (probeThroughProxy(3500)) {
                     failures = 0
                     continue
                 }
@@ -151,8 +163,75 @@ object BuiltInTunnelHelper {
     @JvmStatic
     fun statusText(): String = lastStatus
 
+    // entiny: engine state as its own list, used by diagnostics. 4 = the engine reports connected.
+    @JvmStatic
+    fun stateText(): String {
+        if (!InuConfig.BUILT_IN_TUNNEL.value) return "off"
+        if (engineRunning) return "connected"
+        if (starting) return "connecting"
+        return try {
+            when (val s = NativeEngine.nativeGetState()) {
+                1 -> "provisioning"; 2 -> "scanning"; 3 -> "connecting"
+                4 -> "engine-says-connected"; 6 -> "reconnecting"
+                else -> "state $s"
+            }
+        } catch (_: Throwable) { "unknown" }
+    }
+
     @JvmStatic
     fun logsText(): String = try { NativeEngine.nativeGetLogs() } catch (_: Throwable) { "" }
+
+    // entiny: "connected but nothing loads" needed sight into the real state, because the engine
+    // log alone does not say whether the local port actually forwards. This probes every layer so
+    // a shared log immediately shows which one is broken.
+    @JvmStatic
+    fun diagnosticsText(): String {
+        val sb = StringBuilder()
+        sb.append("=== Hellboy Tunnel diagnostics ===\n")
+        sb.append("time: ").append(java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())).append('\n')
+        sb.append("enabled: ").append(InuConfig.BUILT_IN_TUNNEL.value).append('\n')
+        sb.append("state: ").append(stateText()).append('\n')
+        sb.append("engineRunning: ").append(engineRunning).append('\n')
+        sb.append("starting: ").append(starting).append('\n')
+        sb.append("restarting: ").append(restarting).append('\n')
+        sb.append("lastStatus: ").append(lastStatus).append('\n')
+        sb.append("autoRetries: ").append(autoRetries).append('/').append(MAX_AUTO_RETRIES).append('\n')
+        sb.append("socksPort: ").append(SOCKS_PORT).append(" open=").append(isPortOpen(SOCKS_PORT)).append('\n')
+        sb.append("httpPort: ").append(HTTP_PORT).append(" open=").append(isPortOpen(HTTP_PORT)).append('\n')
+        sb.append("handshake (probeThroughProxy): ").append(probeThroughProxy(4000)).append('\n')
+        val bp = TunnelHttpBridge.port
+        sb.append("bridgePort: ").append(bp).append('\n')
+        if (bp > 0) {
+            sb.append("bridgeHandshake: ").append(
+                try {
+                    Socket().use { s ->
+                        s.soTimeout = 3000
+                        s.connect(InetSocketAddress("127.0.0.1", bp), 3000)
+                        true
+                    }
+                } catch (_: Throwable) { false }
+            ).append('\n')
+        }
+        sb.append("mediaRouteInstalled: ").append(TunnelSocketRoute.isInstalled())
+            .append(" routePort=").append(TunnelSocketRoute.currentPort()).append('\n')
+        try {
+            val cm = appContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            val n = cm?.activeNetwork
+            val caps = n?.let { cm.getNetworkCapabilities(it) }
+            sb.append("network: ").append(
+                when {
+                    caps == null -> "unknown"
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "vpn"
+                    else -> "other"
+                }
+            ).append('\n')
+        } catch (_: Throwable) {}
+        sb.append("\n=== engine log ===\n")
+        sb.append(logsText().takeLast(6000))
+        return sb.toString()
+    }
 
     @JvmStatic
     fun setEnabled(enabled: Boolean) {
@@ -260,7 +339,20 @@ object BuiltInTunnelHelper {
                         return@Thread
                     }
                     if (state == 4) {
-                        onConnected("127.0.0.1:$SOCKS_PORT")
+                        // entiny: THE fix. state==4 is the engine's own opinion and it turns true
+                        // before the listener forwards anything, so the old code advertised
+                        // "connected" while every request through the proxy failed. Require a real
+                        // SOCKS5 CONNECT to succeed before we trust it.
+                        lastStatus = "verifying proxy"
+                        postState()
+                        if (waitForProxyReady(20000)) {
+                            onConnected("127.0.0.1:$SOCKS_PORT")
+                        } else {
+                            val tail = try {
+                                NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ")
+                            } catch (_: Throwable) { "" }
+                            onFailed("port not forwarding $tail".take(240))
+                        }
                         return@Thread
                     }
                     val stateName = when (state) {
@@ -369,11 +461,12 @@ object BuiltInTunnelHelper {
         }
         AndroidUtilities.runOnUIThread {
             desu.inugram.helpers.helboy.HelboyWebViewProxy.clear()
-            if (InuConfig.BUILT_IN_TUNNEL.value) {
-                InuConfig.BUILT_IN_TUNNEL.value = false
-                restoreProxyPref()
-                CensorshipHelper.reapply()
-            }
+            clearMediaRoute()
+            // entiny: do NOT clear the user's preference here. Doing that is what made the tunnel
+            // need a manual toggle: one failed start switched the feature off, so init() on the
+            // next launch would not auto-start it. Leave it on and let the watchdog bring it back.
+            restoreProxyPref()
+            CensorshipHelper.reapply()
             postState()
         }
     }
@@ -392,6 +485,64 @@ object BuiltInTunnelHelper {
             4 -> PROTOCOL_MASQUE_IN_MASQUE
             else -> PROTOCOL_MASQUE
         }
+    }
+
+    // entiny: a TCP connect to the port is NOT proof the tunnel works. The listener can accept
+    // and then fail to forward, which is exactly the "shows connected but nothing loads" case.
+    // Drive a real SOCKS5 handshake + CONNECT and require the engine to accept it.
+    @JvmStatic
+    fun probeThroughProxy(timeoutMs: Int = 4000): Boolean {
+        if (!isPortOpen(SOCKS_PORT)) return false
+        return try {
+            Socket().use { s ->
+                s.soTimeout = timeoutMs
+                s.connect(InetSocketAddress("127.0.0.1", SOCKS_PORT), timeoutMs)
+                val out = s.getOutputStream()
+                val inp = s.getInputStream()
+                // greeting: version 5, one method, no-auth
+                out.write(byteArrayOf(5, 1, 0)); out.flush()
+                val greet = ByteArray(2)
+                if (inp.read(greet) != 2 || greet[0].toInt() != 5 || greet[1].toInt() != 0) return false
+                // CONNECT 1.1.1.1:443
+                out.write(byteArrayOf(5, 1, 0, 1, 1, 1, 1, 1, 0x01, 0xBB)); out.flush()
+                val resp = ByteArray(4)
+                if (inp.read(resp) != 4) return false
+                if (resp[0].toInt() != 5) return false
+                if (resp[1].toInt() != 0) return false // 0x00 = succeeded
+                val rest = when (resp[3].toInt()) {
+                    1 -> 6      // IPv4 + port
+                    4 -> 18     // IPv6 + port
+                    3 -> {      // domain: len byte + name + port
+                        val len = inp.read()
+                        if (len < 0) 0 else len + 2
+                    }
+                    else -> 0
+                }
+                if (rest > 0) {
+                    val sink = ByteArray(rest)
+                    inp.read(sink)
+                }
+                true
+            }
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    // entiny: state==4 only means the engine believes it is up; the port may not be forwarding
+    // yet. Poll the real handshake before we point Telegram at the proxy.
+    private fun waitForProxyReady(timeoutMs: Long): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (!InuConfig.BUILT_IN_TUNNEL.value) return false
+            if (probeThroughProxy()) return true
+            try {
+                Thread.sleep(600)
+            } catch (_: InterruptedException) {
+                return false
+            }
+        }
+        return false
     }
 
     // entiny: media3/ExoPlayer route through the tunnel needs this probe too

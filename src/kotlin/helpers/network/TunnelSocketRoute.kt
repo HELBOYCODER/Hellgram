@@ -58,6 +58,12 @@ object TunnelSocketRoute {
     }
 
     @JvmStatic
+    fun isInstalled(): Boolean = installed
+
+    @JvmStatic
+    fun currentPort(): Int = port
+
+    @JvmStatic
     @Synchronized
     fun clear() {
         if (!installed) return

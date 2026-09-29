@@ -1599,6 +1599,9 @@
     <string name="InuTunnelPeerSave">Save</string>
     <string name="InuTunnelPeerClear">Clear</string>
     <string name="InuTunnelLogs">Logs &amp; Errors</string>
+    <string name="InuCopyLogs">Copy logs</string>
+    <string name="InuCopyLogsInfo">Copies a full report: connection state, port checks, proxy handshake test, bridge status and the engine log.</string>
+    <string name="InuLogsCopied">Logs copied</string>
     <string name="InuTranslationSource">Source language</string>
     <string name="InuTunnelObfuscation">Obfuscation</string>
     <string name="InuTunnelFragment">Fragment ClientHello</string>

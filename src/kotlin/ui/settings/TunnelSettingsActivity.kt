@@ -7,10 +7,12 @@ import desu.inugram.InuConfig
 import desu.inugram.SearchRegistry
 import desu.inugram.helpers.InuUtils
 import desu.inugram.helpers.network.BuiltInTunnelHelper
+import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.LocaleController
 import org.telegram.messenger.NotificationCenter
 import org.telegram.messenger.R
 import org.telegram.ui.ActionBar.AlertDialog
+import org.telegram.ui.Components.BulletinFactory
 import org.telegram.ui.Components.UItem
 import org.telegram.ui.Components.UniversalAdapter
 
@@ -85,6 +87,8 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelPeerInfo)))
 
         items.add(UItem.asButton(BUTTON_LOGS, R.drawable.inu_tabler_terminal_2, LocaleController.getString(R.string.InuTunnelLogs)))
+        items.add(UItem.asButton(BUTTON_COPY_LOGS, R.drawable.inu_tabler_terminal_2, LocaleController.getString(R.string.InuCopyLogs)))
+        items.add(UItem.asShadow(LocaleController.getString(R.string.InuCopyLogsInfo)))
     }
 
     private fun statusLine(): CharSequence = when {
@@ -110,6 +114,16 @@ class TunnelSettingsActivity : SettingsPageActivity() {
             item.id == BUTTON_PEER -> showPeerDialog()
 
             item.id == BUTTON_LOGS -> showLogsDialog()
+
+            // entiny: one tap puts the full diagnostics report (state, ports, handshake test,
+            // bridge, engine log) on the clipboard so it can be pasted straight into a chat.
+            item.id == BUTTON_COPY_LOGS -> {
+                val report = BuiltInTunnelHelper.diagnosticsText()
+                org.telegram.messenger.AndroidUtilities.addToClipboard(report)                BulletinFactory.of(this).createSimpleBulletin(
+                    R.raw.done,
+                    LocaleController.getString(R.string.InuLogsCopied)
+                ).show()
+            }
 
             item.id == TOGGLE_FRAGMENT -> {
                 InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value = InuConfig.BUILT_IN_TUNNEL_FRAGMENT.toggle()
@@ -207,6 +221,7 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         private val BUTTON_CONNECT = InuUtils.generateId()
         private val BUTTON_PEER = InuUtils.generateId()
         private val BUTTON_LOGS = InuUtils.generateId()
+        private val BUTTON_COPY_LOGS = InuUtils.generateId()
         private val TOGGLE_FRAGMENT = InuUtils.generateId()
         private val TOGGLE_ECH = InuUtils.generateId()
         private val TOGGLE_H2 = InuUtils.generateId()
