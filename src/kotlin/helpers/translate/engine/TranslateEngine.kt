@@ -365,7 +365,7 @@ object TranslateEngine {
                 continue
             }
 
-            val result: Any?
+            var result: Any?
             try {
                 Log.d(TAG, "start dialog=${job.key.dialogId} msg=${job.key.msgId} provider=${job.provider.id}")
                 result = job.run()
