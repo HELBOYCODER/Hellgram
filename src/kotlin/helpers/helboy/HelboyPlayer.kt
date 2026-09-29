@@ -1,22 +1,31 @@
 package desu.inugram.helpers.helboy
 
 import android.net.Uri
+import desu.inugram.ui.helboy.HelboyNativePlayerActivity
 import desu.inugram.ui.helboy.HelboyWebPlayerActivity
 import org.telegram.ui.ActionBar.BaseFragment
 
-// entiny: plays a Helboy channel in the bundled in-app web player (hls.js + Plyr),
-// routed through the built-in tunnel's HTTP port by HelboyWebViewProxy.
+// entiny: stream channels use Telegram's native VideoPlayer (hls/mp4), with the
+// bundled hls.js web page as automatic fallback; YouTube channels stay on the web player.
 object HelboyPlayer {
 
     @JvmStatic
     fun play(fragment: BaseFragment, ch: HelboyChannel) {
-        val url = when {
-            ch.hasStreams -> "file:///android_asset/helboy_player/index.html#u=" + Uri.encode(ch.primaryUrl)
-            ch.youtubeId != null -> "file:///android_asset/helboy_player/index.html#y=" + ch.youtubeId
-            else -> return
+        val webPage = "file:///android_asset/helboy_player/index.html"
+        if (ch.hasStreams) {
+            fragment.presentFragment(
+                HelboyNativePlayerActivity(
+                    ch.primaryUrl,
+                    ch.name,
+                    "$webPage#u=${Uri.encode(ch.primaryUrl)}&n=${Uri.encode(ch.name)}",
+                ),
+            )
+            return
         }
-        fragment.presentFragment(
-            HelboyWebPlayerActivity("$url&n=${Uri.encode(ch.name)}", ch.name),
-        )
+        ch.youtubeId?.let {
+            fragment.presentFragment(
+                HelboyWebPlayerActivity("$webPage#y=$it&n=${Uri.encode(ch.name)}", ch.name),
+            )
+        }
     }
 }
