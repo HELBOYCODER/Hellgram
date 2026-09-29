@@ -43,12 +43,70 @@ object BuiltInTunnelHelper {
     private var appContext: Context? = null
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var watchdog: Thread? = null
+
+    @Volatile private var restarting = false
+    private var lastNetworkChange = 0L
+    private var autoRetries = 0
+    private val MAX_AUTO_RETRIES = 3
 
     @JvmStatic
     fun init(context: Context) {
         appContext = context.applicationContext
         initNetworkCallback(context)
+        startWatchdog()
         if (InuConfig.BUILT_IN_TUNNEL.value) start()
+    }
+
+    // entiny: the engine can die (or its port go stale) while engineRunning is still true — network
+    // switches, doze, or an upstream drop. Previously that left Telegram proxying into a dead port
+    // with no recovery until the user toggled the tunnel by hand. Poll the port and restart.
+    private fun startWatchdog() {
+        if (watchdog != null) return
+        watchdog = Thread {
+            var failures = 0
+            while (true) {
+                try {
+                    Thread.sleep(15000)
+                } catch (_: InterruptedException) {
+                    return@Thread
+                }
+                if (!InuConfig.BUILT_IN_TUNNEL.value || starting || restarting) continue
+                if (!engineRunning) continue
+                if (isPortOpen(SOCKS_PORT) || isPortOpen(HTTP_PORT)) {
+                    failures = 0
+                    continue
+                }
+                failures++
+                Log.w(TAG, "tunnel port dead (check $failures)")
+                if (failures < 2) continue
+                failures = 0
+                restart(reason = "tunnel unresponsive")
+            }
+        }.apply {
+            name = "inu-tunnel-watchdog"
+            isDaemon = true
+            start()
+        }
+    }
+
+    // entiny: restart without clearing the user's preference — a transient drop must not switch
+    // the tunnel off permanently the way onFailed() does for a first-connect failure.
+    @Synchronized
+    private fun restart(reason: String) {
+        if (restarting) return
+        restarting = true
+        lastStatus = "reconnecting ($reason)"
+        postState()
+        try {
+            try { NativeEngine.nativeStop() } catch (_: Throwable) {}
+            engineRunning = false
+            starting = false
+            TunnelSocketRoute.clear()
+            start()
+        } finally {
+            AndroidUtilities.runOnUIThread { restarting = false }
+        }
     }
 
     private fun initNetworkCallback(context: Context) {
@@ -56,12 +114,10 @@ object BuiltInTunnelHelper {
         connectivityManager = cm
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                if (isActive()) {
-                    AndroidUtilities.runOnUIThread { reconnectOnNetworkChange() }
-                }
+                onNetworkChanged("available")
             }
             override fun onLost(network: Network) {
-                // Network lost - engine will reconnect via quickReconnect=true
+                onNetworkChanged("lost")
             }
             override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
                 if (isActive() && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
@@ -75,15 +131,19 @@ object BuiltInTunnelHelper {
         } catch (_: Throwable) {}
     }
 
-    private fun reconnectOnNetworkChange() {
+    // entiny: onAvailable fires once per network (wifi + cell + vpn) in quick succession; without
+    // debouncing, each event tore down and rebuilt the engine and they fought each other.
+    private fun onNetworkChanged(what: String) {
         if (!InuConfig.BUILT_IN_TUNNEL.value || starting) return
-        // Trigger quick reconnect by stopping and starting
-        stopEngine()
-        start()
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastNetworkChange < 3000) return
+        lastNetworkChange = now
+        Log.i(TAG, "network $what -> reconnecting tunnel")
+        restart(reason = "network $what")
     }
 
     @JvmStatic
-    fun isActive(): Boolean = InuConfig.BUILT_IN_TUNNEL.value && engineRunning
+    fun isActive(): Boolean = InuConfig.BUILT_IN_TUNNEL.value && engineRunning && !restarting
 
     @JvmStatic
     fun isStarting(): Boolean = starting
@@ -227,6 +287,7 @@ object BuiltInTunnelHelper {
     private fun stop() {
         stopEngine()
         desu.inugram.helpers.helboy.HelboyWebViewProxy.clear()
+        TunnelSocketRoute.clear()
         restoreProxyPref()
         CensorshipHelper.reapply()
     }
@@ -236,6 +297,8 @@ object BuiltInTunnelHelper {
         engineRunning = false
         starting = false
         lastStatus = ""
+        // entiny: never leave the process-wide selector pointing at a dead tunnel
+        TunnelSocketRoute.clear()
     }
 
     // entiny: public reconnect hook for network changes
@@ -251,7 +314,10 @@ object BuiltInTunnelHelper {
         engineRunning = true
         starting = false
         lastStatus = status
+        autoRetries = 0
         Log.i(TAG, "built-in tunnel connected: $status")
+        // entiny: install off the UI thread — install() probes the port synchronously
+        TunnelSocketRoute.install(HTTP_PORT)
         AndroidUtilities.runOnUIThread {
             MessagesController.getGlobalMainSettings().edit { putBoolean("proxy_enabled", true) }
             for (a in 0 until org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT) {
@@ -275,6 +341,23 @@ object BuiltInTunnelHelper {
         engineRunning = false
         lastStatus = error
         Log.e(TAG, "built-in tunnel failed: $error")
+        // entiny: a failure right after a network transition is usually transient. Retry with
+        // backoff instead of switching the tunnel off for the rest of the session (which is what
+        // made the old build look like "reconnect is broken" after wifi<->mobile switches).
+        if (InuConfig.BUILT_IN_TUNNEL.value && autoRetries < MAX_AUTO_RETRIES) {
+            autoRetries++
+            lastStatus = "retrying ($autoRetries/$MAX_AUTO_RETRIES): $error"
+            postState()
+            Thread {
+                try {
+                    Thread.sleep(2500L * autoRetries)
+                } catch (_: InterruptedException) {
+                    return@Thread
+                }
+                if (InuConfig.BUILT_IN_TUNNEL.value && !engineRunning && !starting && !restarting) start()
+            }.apply { isDaemon = true }.start()
+            return
+        }
         AndroidUtilities.runOnUIThread {
             desu.inugram.helpers.helboy.HelboyWebViewProxy.clear()
             if (InuConfig.BUILT_IN_TUNNEL.value) {
@@ -302,7 +385,9 @@ object BuiltInTunnelHelper {
         }
     }
 
-    private fun isPortOpen(port: Int): Boolean {
+    // entiny: media3/ExoPlayer route through the tunnel needs this probe too
+    @JvmStatic
+    fun isPortOpen(port: Int): Boolean {
         return try {
             Socket().use { it.connect(InetSocketAddress("127.0.0.1", port), 350) }
             true

@@ -23,7 +23,5 @@ desktop.ini
 # not sure if this is needed, but it seems to be
 entinyBot/
 entinyProto/
-src/res/assets/helboy_player/hls.min.js
-src/res/assets/helboy_player/plyr.min.js
-src/res/assets/helboy_player/plyr.css
-src/res/assets/helboy_player/plyr.svg
+# helboy_player libs are committed on purpose: the in-app page must work on filtered networks,
+# so it must never depend on a CDN being reachable at build time.

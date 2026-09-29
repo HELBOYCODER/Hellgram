@@ -198,7 +198,8 @@ async function ensureHelboyData() {
 }
 
 async function ensureHelboyPlayer() {
-  // Vendored web-player libs for the bundled helboy_player page; gitignored.
+  // helboy_player libs are committed; only fetch them if a checkout is missing one (e.g. a stale
+  // clone from before they were vendored). Kept as a fallback so an old working copy still builds.
   const dir = join(assetsDir, 'helboy_player')
   const libs: [string, string][] = [
     ['hls.min.js', 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js'],

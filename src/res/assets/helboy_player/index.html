@@ -8,8 +8,10 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family:system-ui,-apple-system,sans-serif; color:#fff; }
   #player { width:100%; height:100%; position:absolute; top:0; left:0; }
+  #player video, #player iframe { width:100%; height:100%; }
   #overlay { position:absolute; top:0; left:0; right:0; z-index:10; padding:12px 16px;
-             background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%); pointer-events:none; }
+             background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%); pointer-events:none;
+             transition:opacity .3s; }
   #ch-name { font-size:16px; font-weight:600; text-shadow:0 1px 3px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #ch-info { font-size:11px; opacity:.7; margin-top:2px; }
   #buffering { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; display:none; text-align:center; }
@@ -25,18 +27,31 @@
                           font-size:15px; font-weight:600; cursor:pointer; }
   #quality-badge { position:absolute; bottom:70px; right:16px; z-index:10; background:rgba(0,0,0,.6);
                    padding:4px 10px; border-radius:4px; font-size:11px; pointer-events:none; display:none; }
+  /* helboy: self-contained quality selector; does not touch Plyr's own DOM */
+  #quality-btn { position:absolute; bottom:64px; left:16px; z-index:11; background:rgba(0,0,0,.65); color:#fff;
+                 border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; display:none; }
+  #quality-menu { position:absolute; bottom:96px; left:16px; z-index:12; background:rgba(0,0,0,.9);
+                  border-radius:6px; padding:4px 0; display:none; min-width:110px; max-height:55vh; overflow-y:auto; }
+  #quality-menu div { padding:9px 16px; font-size:12px; cursor:pointer; white-space:nowrap; }
+  #quality-menu div:hover { background:rgba(229,57,53,.35); }
+  #quality-menu div.sel { color:#e53935; font-weight:600; }
   .plyr { --plyr-color: #e53935; }
   .plyr__controls { padding: 8px 12px !important; }
 </style>
-<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
-<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+<!-- helboy: bundled locally (assets/helboy_player). Loading these from jsdelivr/plyr.io made the
+     page render a black screen whenever those CDNs are unreachable, i.e. on exactly the networks
+     this player is meant to work on. -->
+<link rel="stylesheet" href="plyr.css">
+<script src="plyr.min.js"></script>
+<script src="hls.min.js"></script>
 </head>
 <body>
 <div id="player"><video id="video" playsinline></video></div>
 <div id="overlay"><div id="ch-name"></div><div id="ch-info"></div></div>
 <div id="buffering"><div class="spinner"></div><div style="font-size:13px;opacity:.7">Buffering...</div></div>
 <div id="quality-badge"></div>
+<button id="quality-btn">Quality</button>
+<div id="quality-menu"></div>
 <div id="error-overlay">
   <div class="icon">📡</div>
   <div class="msg" id="error-msg">Connection lost. Check your internet.</div>
@@ -52,22 +67,25 @@
   const errorMsg = document.getElementById('error-msg');
   const retryBtn = document.getElementById('retry-btn');
   const qualityBadge = document.getElementById('quality-badge');
+  const qualityBtn = document.getElementById('quality-btn');
+  const qualityMenu = document.getElementById('quality-menu');
 
   let hls = null;
   let player = null;
-  let retryCount = 0;
-  let lastError = '';
-  let currentLevel = -1; // -1 = auto
-  let qualityMenuOpen = false;
+  let autoRetries = 0;
+  let currentLevel = -1;          // -1 = auto
+  let playbackStarted = false;
+  let retryTimer = null;
 
-  // Parse URL params
+  const MAX_AUTO_RETRIES = 12;
+
+  // ---- params ----
   const hash = location.hash.slice(1);
   const params = new URLSearchParams(hash.replace(/#/g,'&') + '&' + location.search.slice(1));
   let streamUrl = params.get('u') || '';
   let youtubeId = params.get('y') || null;
   let channelName = params.get('n') || 'Helboy TV';
 
-  // Also handle ?u= and ?n= (from Kotlin Uri.encode)
   if (!streamUrl) {
     try {
       const h = decodeURIComponent(hash);
@@ -87,83 +105,179 @@
 
   chNameEl.textContent = channelName;
 
-  // YouTube embed
   if (youtubeId) {
     chInfoEl.textContent = 'YouTube';
     document.getElementById('player').innerHTML =
       '<iframe src="https://www.youtube.com/embed/' + youtubeId +
       '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
-      'style="width:100%;height:100%;border:none" allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>';
+      'allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>';
     return;
   }
 
   if (!streamUrl) { showError('No stream URL provided.'); return; }
 
-  function initPlayer(url) {
-    if (hls) { hls.destroy(); hls = null; }
-    if (player) { player.destroy(); player = null; }
+  const isHlsUrl = /\.m3u8(\?|$)/i.test(streamUrl);
 
-    if (Hls.isSupported()) {
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorOverlay.classList.add('show');
+    bufferingEl.style.display = 'none';
+  }
+
+  function hideError() {
+    errorOverlay.classList.remove('show');
+  }
+
+  function showBuffering(on) {
+    bufferingEl.style.display = on ? 'block' : 'none';
+  }
+
+  // helboy: always tear the old pipeline down before building a new one, otherwise the previous
+  // hls.js worker keeps retrying in the background and fights the new one for the same socket.
+  function teardown() {
+    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+    if (hls) { try { hls.destroy(); } catch(e) {} hls = null; }
+    if (player) { try { player.destroy(); } catch(e) {} player = null; }
+    try { video.removeAttribute('src'); video.load(); } catch(e) {}
+    qualityBtn.style.display = 'none';
+    qualityMenu.style.display = 'none';
+  }
+
+  // helboy: single retry path with exponential backoff, capped, and reset once media actually plays.
+  function scheduleRetry(reason) {
+    if (autoRetries >= MAX_AUTO_RETRIES) {
+      showError(reason + '\nAutomatic retries exhausted — tap Retry.');
+      return;
+    }
+    const delay = Math.min(2 + autoRetries * 2, 20);
+    autoRetries++;
+    showError(reason + ' — retrying in ' + delay + 's (attempt ' + autoRetries + '/' + MAX_AUTO_RETRIES + ')');
+    showBuffering(false);
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = setTimeout(function(){ hideError(); initPlayer(streamUrl); }, delay * 1000);
+  }
+
+  function buildQualityMenu() {
+    if (!hls || !hls.levels || hls.levels.length < 2) return;
+    qualityMenu.innerHTML = '';
+
+    const auto = document.createElement('div');
+    auto.textContent = 'Auto';
+    auto.className = currentLevel === -1 ? 'sel' : '';
+    auto.onclick = function(){ currentLevel = -1; hls.currentLevel = -1; buildQualityMenu(); };
+    qualityMenu.appendChild(auto);
+
+    // highest first — that is the order users expect in a quality list
+    const sorted = hls.levels
+      .map(function(l, i){ return { i: i, h: l.height || 0, br: l.bitrate || 0 }; })
+      .sort(function(a, b){ return (b.h - a.h) || (b.br - a.br); });
+
+    sorted.forEach(function(l){
+      const row = document.createElement('div');
+      const label = l.h ? l.h + 'p' : Math.round(l.br / 1000) + ' kbps';
+      row.textContent = label;
+      row.className = currentLevel === l.i ? 'sel' : '';
+      row.onclick = function(){
+        currentLevel = l.i;
+        hls.currentLevel = l.i;
+        buildQualityMenu();
+      };
+      qualityMenu.appendChild(row);
+    });
+  }
+
+  qualityBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block';
+  });
+
+  function attachCommonVideoEvents() {
+    video.addEventListener('waiting', function(){ showBuffering(true); });
+    video.addEventListener('playing', function(){
+      showBuffering(false);
+      hideError();
+      autoRetries = 0;
+      playbackStarted = true;
+    });
+    video.addEventListener('canplay', function(){ showBuffering(false); });
+  }
+
+  function initPlayer(url) {
+    teardown();
+    hideError();
+    showBuffering(true);
+    currentLevel = -1;
+
+    if (isHlsUrl && window.Hls && Hls.isSupported()) {
       hls = new Hls({
-        startLevel: -1, // auto
+        startLevel: -1,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
         enableWorker: true,
         lowLatencyMode: true,
         backBufferLength: 0,
+        manifestLoadingMaxRetry: 4,
+        levelLoadingMaxRetry: 6,
+        fragLoadingMaxRetry: 8,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingRetryDelay: 1000,
+        fragLoadingRetryDelay: 1000,
       });
       hls.loadSource(url);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, function(e, data) {
-        const levels = data.levels;
-        chInfoEl.textContent = 'HLS • ' + levels.length + ' quality levels';
+      hls.on(Hls.Events.MANIFEST_PARSED, function(e, data){
+        chInfoEl.textContent = 'HLS • ' + data.levels.length + ' quality levels';
+        if (data.levels.length > 1) qualityBtn.style.display = 'block';
+        buildQualityMenu();
         video.play().catch(function(){});
       });
 
-      hls.on(Hls.Events.LEVEL_SWITCHED, function(e, data) {
+      hls.on(Hls.Events.LEVEL_SWITCHED, function(e, data){
         const level = hls.levels[data.level];
-        if (level) {
-          const h = level.height || '?';
-          const br = level.bitrate ? Math.round(level.bitrate/1000) + ' kbps' : '';
-          qualityBadge.textContent = (currentLevel === -1 ? 'AUTO ' : '') + h + 'p ' + br;
-          qualityBadge.style.display = 'block';
-          clearTimeout(qualityBadge._timer);
-          qualityBadge._timer = setTimeout(function(){ qualityBadge.style.display = 'none'; }, 3000);
-        }
+        if (!level) return;
+        const h = level.height || '?';
+        const br = level.bitrate ? Math.round(level.bitrate/1000) + ' kbps' : '';
+        qualityBadge.textContent = (currentLevel === -1 ? 'AUTO ' : '') + h + 'p ' + br;
+        qualityBadge.style.display = 'block';
+        clearTimeout(qualityBadge._timer);
+        qualityBadge._timer = setTimeout(function(){ qualityBadge.style.display = 'none'; }, 3000);
       });
 
-      hls.on(Hls.Events.ERROR, function(e, data) {
-        if (data.fatal) {
-          switch(data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              showError('Network error. Retrying...');
-              setTimeout(function(){ hls.startLoad(); }, 3000);
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              showError('Playback error. Recovering...');
-              hls.recoverMediaError();
-              break;
-            default:
-              showError('Fatal error: ' + (data.details || 'unknown'));
-              setTimeout(initPlayer.bind(null, url), 5000);
-              break;
-          }
+      hls.on(Hls.Events.ERROR, function(e, data){
+        if (!data.fatal) return;
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            // hls.js can usually resume a dropped live stream on its own first
+            try { hls.startLoad(); return; } catch(err) {}
+            scheduleRetry('Network error');
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            try { hls.recoverMediaError(); return; } catch(err) {}
+            scheduleRetry('Playback error');
+            break;
+          default:
+            scheduleRetry('Stream error: ' + (data.details || 'unknown'));
+            break;
         }
       });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native HLS
+    } else if (isHlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      video.addEventListener('loadedmetadata', function(){ video.play().catch(function(){}); });
+      video.addEventListener('loadedmetadata', function(){ video.play().catch(function(){}); }, { once: true });
+    } else if (!isHlsUrl) {
+      // progressive mp4 / webm — hand straight to Plyr, no hls.js involved
+      video.src = url;
+      video.play().catch(function(){});
     } else {
       showError('HLS is not supported on this device.');
       return;
     }
 
-    // Init Plyr
+    attachCommonVideoEvents();
+
     player = new Plyr(video, {
       controls: ['play-large','play','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
-      settings: ['speed','quality'],
+      settings: ['speed'],
       tooltips: { controls: true, seek: true },
       speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
       keyboard: { focused: true, global: true },
@@ -172,67 +286,33 @@
       ratio: '16:9',
     });
 
-    // Quality menu via Plyr settings
-    if (hls) {
-      hls.on(Hls.Events.MANIFEST_PARSED, function(e, data) {
-        // Build quality levels for Plyr settings
-        const levels = data.levels;
-        if (levels.length > 1) {
-          // Override Plyr quality setting
-          player.options.quality = {
-            default: -1,
-            options: levels.map(function(l, i) { return { value: i, label: (l.height||'?') + 'p' }; }).reverse().concat([{value:-1, label:'Auto'}]),
-            forced: false,
-            onChange: function(quality) {
-              if (hls) {
-                currentLevel = quality;
-                hls.currentLevel = quality;
-              }
-            }
-          };
-        }
-      });
-    }
-
-    // Loading/buffering indicator
-    video.addEventListener('waiting', function(){ bufferingEl.style.display = 'block'; });
-    video.addEventListener('playing', function(){ bufferingEl.style.display = 'none'; });
-    video.addEventListener('canplay', function(){ bufferingEl.style.display = 'none'; });
-
-    // Error handling
-    video.addEventListener('error', function() {
-      showError('Playback error. Retrying...');
-      setTimeout(initPlayer.bind(null, url), 5000);
+    player.on('error', function(){
+      if (!playbackStarted) scheduleRetry('Playback failed');
     });
   }
 
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorOverlay.classList.add('show');
-    bufferingEl.style.display = 'none';
-  }
-
-  retryBtn.addEventListener('click', function() {
-    errorOverlay.classList.remove('show');
-    retryCount++;
-    if (retryCount > 10) {
-      showError('Too many retries. Please check your connection.');
-      return;
-    }
+  retryBtn.addEventListener('click', function(){
+    autoRetries = 0;
+    hideError();
     initPlayer(streamUrl);
   });
 
-  // Auto-hide overlay after 3s
-  setTimeout(function(){ document.getElementById('overlay').style.opacity = '0'; }, 3000);
+  // helboy: without this, a dropped stream that never fires 'error' (very common on live HLS around
+  // a network switch) would leave a frozen frame forever.
+  setInterval(function(){
+    if (errorOverlay.classList.contains('show') || !playbackStarted) return;
+    if (video.paused || video.ended) return;
+    if (video.readyState < 3) scheduleRetry('Stream stalled');
+  }, 20000);
+
+  const o = document.getElementById('overlay');
+  setTimeout(function(){ o.style.opacity = '0'; }, 3000);
   document.addEventListener('touchstart', function(){
-    const o = document.getElementById('overlay');
-    o.style.transition = 'opacity .3s';
     o.style.opacity = '1';
     clearTimeout(o._timer);
     o._timer = setTimeout(function(){ o.style.opacity = '0'; }, 3000);
   });
 
-  // Screen orientation lock
   if (screen.orientation && screen.orientation.lock) {
     screen.orientation.lock('landscape').catch(function(){});
   }
