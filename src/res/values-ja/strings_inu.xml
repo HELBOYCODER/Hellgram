@@ -2,7 +2,7 @@
 <resources>
     <string name="InuOpenInDiscussion">ディスカッションで開く</string>
     <string name="InuBanUserConfirm">%1$s をこのグループから BAN しますか？</string>
-    <string name="InuSettings">entinyGram 設定</string>
+    <string name="InuSettings">Hellgram 設定</string>
     <string name="InuSettingsInfo">犬は何してるの？</string>
     <string name="InuGeneral">一般</string>
     <string name="InuMiscellaneous">その他</string>
@@ -12,7 +12,7 @@
     <string name="InuWideChannelPostsPreviewReply">転送されたチャンネル投稿</string>
     <string name="InuWideChannelPostsPreviewReplyLabel">チャンネル投稿</string>
     <string name="InuAutoUpdateCheck">アップデートを確認</string>
-    <string name="InuAutoUpdateCheckInfo">entinyGram CI チャンネルを定期的に確認し、新しいリリースがあればダウンロードを提案します。</string>
+    <string name="InuAutoUpdateCheckInfo">Hellgram CI チャンネルを定期的に確認し、新しいリリースがあればダウンロードを提案します。</string>
     <string name="InuUpdatesIncludeBeta">ベータ版アップデートを受け取る</string>
     <string name="InuPushHeader">プッシュ通知</string>
     <string name="InuUnifiedPush">UnifiedPush</string>
@@ -155,7 +155,7 @@
     <string name="InuShowPollResultsBeforeVote">投票前に結果を表示</string>
     <string name="InuShowPollResultsBeforeVoteInfo">まだ投票していない匿名投票でも、常に投票の割合を表示します</string>
     <string name="InuMiscPreviewForwardedFrom">inu</string>
-    <string name="InuMiscPreviewForwardedMessage">わん! entinyGram か inuGram どっち? 🐶</string>
+    <string name="InuMiscPreviewForwardedMessage">わん! Hellgram か inuGram どっち? 🐶</string>
     <string name="InuMiscPreviewEditedMessage">どっちも最高 🐶⚡</string>
     <string name="InuDeleteForBoth">デフォルトで「全員から削除」</string>
     <string name="InuDeleteForBothMessages">メッセージ</string>
@@ -451,7 +451,7 @@
     <string name="InuFormattingPopupDivider">——————</string>
     <string name="InuCut">切り取り</string>
     <string name="InuCodeLanguage">コードの言語</string>
-    <string name="InuVersion">entinyGram v%1$s (ビルド %2$s)</string>
+    <string name="InuVersion">Hellgram v%1$s (ビルド %2$s)</string>
 
     <string name="InuSearchFilter">メディアで絞り込み</string>
     <string name="InuSearchFilterPhotos">写真</string>
@@ -505,11 +505,11 @@
     <string name="InuBackupImportSheetCancel">いいえ、そのままにする</string>
     <string name="InuBackupSettings">バックアップとリセット</string>
     <string name="InuBackupReset">設定をリセット</string>
-    <string name="InuBackupResetConfirm">すべての entinyGram 設定が初期値にリセットされます。チャット、アカウント、Telegram 本体の設定はそのまま残ります。\n\nこの操作は取り消せません。</string>
+    <string name="InuBackupResetConfirm">すべての Hellgram 設定が初期値にリセットされます。チャット、アカウント、Telegram 本体の設定はそのまま残ります。\n\nこの操作は取り消せません。</string>
     <string name="InuBackupResetSuccess">%1$d 件の設定をリセットしました</string>
     <string name="InuBackupResetNoChanges">設定はすでに初期値です</string>
     <string name="InuCloudSync">設定を同期</string>
-    <string name="InuCloudSyncDesc">entinyGram の設定を [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) 経由で Telegram クラウドにバックアップします — データが当方のサーバーに送られることはありません。</string>
+    <string name="InuCloudSyncDesc">Hellgram の設定を [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) 経由で Telegram クラウドにバックアップします — データが当方のサーバーに送られることはありません。</string>
     <string name="InuCloudSyncNow">今すぐ同期</string>
     <string name="InuCloudSyncing">同期中…</string>
     <string name="InuCloudRestore">クラウドから復元</string>
@@ -576,7 +576,7 @@
     <string name="InuMentionInsertTitle">メンションを挿入</string>
     <string name="InuPasscode">パスコード</string>
     <string name="InuPasscodeNeeded">先に Telegram のパスコードを設定してください。</string>
-    <string name="InuPasscodeShowInSettings">entinyGram の設定に表示</string>
+    <string name="InuPasscodeShowInSettings">Hellgram の設定に表示</string>
     <string name="InuPasscodeShowInSettingsInfo">オフの場合、このページは下のリンクからしか開けません。今すぐ保存してください — 一度生成されると変更されません。</string>
     <string name="InuPasscodeAccountsInfo">各アカウントに独自のパスコードを設定できます。ロック画面で入力するとアプリのロックが解除され、そのアカウントに切り替わります。</string>
     <string name="InuPasscodeStateNone">未設定</string>
@@ -615,11 +615,11 @@
     <string name="InuMenuBottomRowFull">クイックアクション行は満杯です（最大 4 件）</string>
     <string name="InuPrivacySecurity">プライバシーとセキュリティ</string>
     <string name="InuPerAccountPasscode">アカウントごとのパスコード</string>
-    <string name="InuHideInugramSettings">entinyGram の設定を非表示</string>
+    <string name="InuHideInugramSettings">Hellgram の設定を非表示</string>
     <string name="InuParanoiaDisableNotifications">通知を無効化</string>
     <string name="InuParanoiaHideOtherAccounts">他のアカウントを非表示</string>
     <string name="InuParanoiaDisguise">Telegram に偽装</string>
-    <string name="InuParanoiaDisguiseInfo">ランチャーのアイコンと名前のみが変わります。Android の制限により、通知やアプリ内の名前は引き続き「entinyGram」と表示されます。</string>
+    <string name="InuParanoiaDisguiseInfo">ランチャーのアイコンと名前のみが変わります。Android の制限により、通知やアプリ内の名前は引き続き「Hellgram」と表示されます。</string>
     <string name="InuParanoiaMode">パラノイアモード</string>
     <string name="InuParanoiaModeInfo">パラノイアモードでは、「危険な」チャットを隠し、必要に応じて標準アプリに偽装することで、誰かに端末を見られる事態に「備える」ことができます。</string>
     <string name="InuParanoiaLauncherShortcut">ランチャーショートカット</string>
@@ -706,7 +706,7 @@
     <string name="InuConfirmReactionText">**%2$s** に %1$s リアクションを送信しますか？</string>
     <string name="InuNotificationIcon">通知アイコン</string>
     <string name="InuNotificationIconTelegram">Telegram</string>
-    <string name="InuNotificationIconInugram">entinyGram</string>
+    <string name="InuNotificationIconInugram">Hellgram</string>
     <string name="InuNothingToTranslate">翻訳対象のメッセージが選択されていません。</string>
     <string name="InuVoiceRecorder">音声 / 丸メッセージ録画</string>
     <string name="InuSummarize">要約</string>
@@ -732,18 +732,18 @@
     <string name="InuBotSettings">ボット設定</string>
     <string name="InuBotHelp">ボットヘルプ</string>
 
-    <string name="InuCrashTitle">前回 entinyGram がクラッシュしました</string>
+    <string name="InuCrashTitle">前回 Hellgram がクラッシュしました</string>
     <string name="InuCrashDesc">ご迷惑をおかけしました。修正に役立てるため、クラッシュログを開発者と共有できます。</string>
     <string name="InuCrashDescOom">ご迷惑をおかけしました。メモリ不足の問題にはクラッシュログはあまり役立ちません — ヒープダンプの方が有用です。</string>
     <string name="InuCrashShare">クラッシュログを共有</string>
     <string name="InuCrashDiscard">破棄</string>
     <string name="InuCrashChannel">クラッシュリカバリー</string>
-    <string name="InuCrashNotifTitle">entinyGram がクラッシュしました</string>
+    <string name="InuCrashNotifTitle">Hellgram がクラッシュしました</string>
     <string name="InuCrashNotifText">タップで再起動</string>
 
     <string name="InuLogs">デバッグ</string>
     <string name="InuLogsEnabled">デバッグモード</string>
-    <string name="InuExtraDebugLogs">[entinyGram] 追加のデバッグログ</string>
+    <string name="InuExtraDebugLogs">[Hellgram] 追加のデバッグログ</string>
     <string name="InuLogsSize">ログサイズ: %1$s</string>
     <string name="InuLogsShare">ログを共有</string>
     <string name="InuLogsShareZip">全ログ (.zip)</string>
@@ -797,9 +797,9 @@
     <string name="InuStripTrackingParamsOnPaste">貼り付け時</string>
     <string name="InuStripTrackingParamsSourceRow">フィルターソース</string>
 
-    <string name="InuCrashTitleOom">entinyGram のメモリが不足しました</string>
+    <string name="InuCrashTitleOom">Hellgram のメモリが不足しました</string>
     <string name="InuCrashDescHeapDump">ヒープダンプも保存されました。共有しないでください！プライベートな情報が含まれています！自分で確認して、気づいたことを教えていただけると、大変助かります。</string>
-    <string name="InuCrashOomEnableLogs">entinyGram 設定 > アプリについて でデバッグモードを有効にすると、次回以降の OOM 発生時にヒープダンプを作成します。</string>
+    <string name="InuCrashOomEnableLogs">Hellgram 設定 > アプリについて でデバッグモードを有効にすると、次回以降の OOM 発生時にヒープダンプを作成します。</string>
     <string name="InuCrashShareHeapDump">ヒープダンプを保存</string>
 
     <string name="InuDeleteOwnMessages">自分のメッセージを削除</string>
@@ -1014,7 +1014,7 @@
     <string name="InuAllowScreenshots">スクリーンショットを許可</string>
     <string name="InuAllowScreenshotsInfo">秘密チャット、消えるメディア、保護されたチャンネルでのスクショや画面録画を許可します。</string>
     <string name="InuAntiDeletion">削除防止</string>
-    <string name="InuAppIconOldEntinygram">旧 entinyGram</string>
+    <string name="InuAppIconOldEntinygram">旧 Hellgram</string>
     <string name="InuCategoryAppearance">外観とレイアウト</string>
     <string name="InuCategoryBackup">詳細設定</string>
     <string name="InuCategoryBehavior">動作とツール</string>
@@ -1175,7 +1175,7 @@
     <string name="InuTypingSpoofActive">現在有効</string>
     <string name="InuTypingSpoofPickChat">チャットを選択</string>
     <string name="InuTypingSpoofQuickListInfo">チャットを開かなくても、チャットヘッダーメニューと同じ入力偽装の選択画面を開きます。</string>
-    <string name="InuHideDevBadges">entinyGramバッジを無効化</string>
+    <string name="InuHideDevBadges">Hellgramバッジを無効化</string>
     <string name="InuHideDevBadgesInfo">これらには特別な意味も特典もありません。単なる開発者からの感謝の印です</string>
     <string name="InuLanguages">言語</string>
     <string name="InuLocalPremium">ローカル Telegram Premium</string>
@@ -1244,7 +1244,7 @@
     <string name="InuMsgDetailWaveformLength">波形サンプル数</string>
     <string name="InuNo">いいえ</string>
     <string name="InuNoProfilePhotos">プロフィール写真が見つかりません</string>
-    <string name="InuNotificationIconOldEntinygram">旧 entinyGram</string>
+    <string name="InuNotificationIconOldEntinygram">旧 Hellgram</string>
     <string name="InuPoweredByProvider">翻訳提供: %1$s</string>
     <string name="InuProfilePhotosDeleted">すべてのプロフィール写真を削除しました</string>
     <string name="InuProfilePhotosDeletedCount">%1$d 枚のプロフィール写真を削除しました</string>
@@ -1434,9 +1434,9 @@
     <string name="InuIgnoreTranslationsDisabled">「翻訳が無効」を無視</string>
     <string name="InuIgnoreTranslationsDisabledInfo">チャンネルやユーザーが設定で翻訳バーを無効にしていても表示します — メッセージメニューの翻訳ボタンは既にこの設定を無視しています。</string>
     <string name="InuLocalCustomEmoji">ローカルカスタム絵文字</string>
-    <string name="InuLocalCustomEmojiInfo">Premium絵文字を非表示リンクとして送信し、非Premiumアカウントでも使用できます。entinyGramとNekogramはアニメーション表示、他のクライアントは通常のリンクとして表示します。絵文字パネルを開くにはローカルPremiumと併用してください。</string>
-    <string name="InuDevBadge">entinyGramチーム</string>
-    <string name="InuDevBadgeInfo">このアカウントはentinyGramチームによって公認されています。</string>
+    <string name="InuLocalCustomEmojiInfo">Premium絵文字を非表示リンクとして送信し、非Premiumアカウントでも使用できます。HellgramとNekogramはアニメーション表示、他のクライアントは通常のリンクとして表示します。絵文字パネルを開くにはローカルPremiumと併用してください。</string>
+    <string name="InuDevBadge">Hellgramチーム</string>
+    <string name="InuDevBadgeInfo">このアカウントはHellgramチームによって公認されています。</string>
     <string name="InuMapProviderOsmLite">OpenStreetMap (軽量)</string>
     <string name="InuProfileSettingsRowsOrder">設定画面の並び順</string>
     <string name="InuProfileSettingsRowsItems">行</string>

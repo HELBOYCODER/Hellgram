@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Oleksii Kulinich <entaytion@gmail.com>
 Date: Tue, 1 Sep 2026 11:09:09 +0300
-Subject: chore(branding): consolidate entinyGram identity and launcher icons
+Subject: chore(branding): consolidate Hellgram identity and launcher icons
 
 ---
  TMessagesProj/build.gradle                     | 10 +++++++++-
@@ -345,7 +345,7 @@ index 0000000..0000000 100644
              loadTexture(v -> {
                  Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 -                paint.setColor(ThemeColors.TELEGRAM_COLOR); // It's logo color, it should not be colored by the theme
-+                paint.setColor(0xFFF20C3C); // entinyGram brand color, it should not be colored by the theme
++                paint.setColor(0xFFF20C3C); // Hellgram brand color, it should not be colored by the theme
                  int size = dp(ICON_HEIGHT_DP);
                  Bitmap bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                  Canvas c = new Canvas(bm);
@@ -383,8 +383,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Deutsch</string>
      <string name="English">Englisch</string>
      <string name="LanguageNameInEnglish">German</string>
@@ -397,8 +397,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Español</string>
      <string name="English">Inglés</string>
      <string name="LanguageNameInEnglish">Spanish</string>
@@ -407,7 +407,7 @@ index 0000000..0000000 100644
      <string name="PermissionDrawAboveOtherAppsGroupCallTitle">Superposición del videochat</string>
      <!--Intro view-->
 -    <string name="Page1Title">Inugram</string>
-+    <string name="Page1Title">entinyGram</string>
++    <string name="Page1Title">Hellgram</string>
      <string name="Page2Title">Rápido</string>
      <string name="Page3Title">Gratuito</string>
      <string name="Page4Title">Seguro</string>
@@ -420,8 +420,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Italiano</string>
      <string name="English">Inglese</string>
      <string name="LanguageNameInEnglish">Italian</string>
@@ -433,7 +433,7 @@ index 0000000..0000000 100644
  <?xml version="1.0" encoding="utf-8"?>
  <resources>
 -    <string name="AppName">Inugram</string>
-+    <string name="AppName">entinyGram</string>
++    <string name="AppName">Hellgram</string>
      <string name="AppNameBeta">Telegram-bèta</string>
      <string name="LanguageName">Nederlands</string>
      <string name="English">Engels</string>
@@ -446,8 +446,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Português (Brasil)</string>
      <string name="English">Inglês</string>
      <string name="LanguageNameInEnglish">Portuguese (Brazil)</string>
@@ -456,7 +456,7 @@ index 0000000..0000000 100644
      <string name="PermissionDrawAboveOtherAppsGroupCallTitle">Chat de vídeo flutuante</string>
      <!--Intro view-->
 -    <string name="Page1Title">Inugram</string>
-+    <string name="Page1Title">entinyGram</string>
++    <string name="Page1Title">Hellgram</string>
      <string name="Page2Title">Rápido</string>
      <string name="Page3Title">Gratuito</string>
      <string name="Page4Title">Seguro</string>
@@ -469,8 +469,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Русский</string>
      <string name="English">Английский</string>
      <string name="LanguageNameInEnglish">Russian</string>
@@ -479,7 +479,7 @@ index 0000000..0000000 100644
      <string name="LoginOrSingInWithGoogle">или</string>
      <!--Intro view-->
 -    <string name="Page1Title">Inugram</string>
-+    <string name="Page1Title">entinyGram</string>
++    <string name="Page1Title">Hellgram</string>
      <string name="Page2Title">Быстрый</string>
      <string name="Page3Title">Бесплатный</string>
      <string name="Page4Title">Безопасный</string>
@@ -492,8 +492,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">Українська</string>
      <string name="English">Англійська</string>
      <string name="LanguageNameInEnglish">Ukrainian</string>
@@ -502,7 +502,7 @@ index 0000000..0000000 100644
      <string name="LoginOrSingInWithGoogle">або</string>
      <!--Intro view-->
 -    <string name="Page1Title">Inugram</string>
-+    <string name="Page1Title">entinyGram</string>
++    <string name="Page1Title">Hellgram</string>
      <string name="Page2Title">Швидкий</string>
      <string name="Page3Title">Безплатний</string>
      <string name="Page4Title">Захищений</string>
@@ -515,8 +515,8 @@ index 0000000..0000000 100644
  <resources>
 -    <string name="AppName">Inugram</string>
 -    <string name="AppNameBeta">Inugram Beta</string>
-+    <string name="AppName">entinyGram</string>
-+    <string name="AppNameBeta">entinyGram Beta</string>
++    <string name="AppName">Hellgram</string>
++    <string name="AppNameBeta">Hellgram Beta</string>
      <string name="LanguageName">English</string>
      <string name="English">English</string>
      <string name="LanguageNameInEnglish">English</string>
@@ -526,8 +526,8 @@ index 0000000..0000000 100644
      <string name="SetProfilePhoto">Set Profile Photo</string>
 -    <string name="AppUpdate">Update Inugram</string>
 -    <string name="AppUpdateBeta">Update Inugram Beta</string>
-+    <string name="AppUpdate">Update entinyGram</string>
-+    <string name="AppUpdateBeta">Update entinyGram Beta</string>
++    <string name="AppUpdate">Update Hellgram</string>
++    <string name="AppUpdateBeta">Update Hellgram Beta</string>
      <string name="AppUpdateVersionAndSize">Version %1$s • %2$s</string>
      <string name="AppBetaUpdateVersion">Version %1$s (%2$s)</string>
      <string name="AppUpdateDownloading">Downloading %1$d%%...</string>
@@ -536,7 +536,7 @@ index 0000000..0000000 100644
      <string name="ViewMessage">Open Message</string>
      <!--Intro view-->
 -    <string name="Page1Title">Inugram</string>
-+    <string name="Page1Title">entinyGram</string>
++    <string name="Page1Title">Hellgram</string>
      <string name="Page2Title">Fast</string>
      <string name="Page3Title">Free</string>
      <string name="Page4Title">Secure</string>

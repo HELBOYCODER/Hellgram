@@ -10,7 +10,7 @@
     <string name="InuDrawerBackGestureInfo">Sohbet listesinin sol kenarından sağa kaydırmak, uygulamadan çıkmak yerine yan menüyü açar.</string>
     <string name="InuDrawerM3Sections">Yan menüde modüler bölümler</string>
     <string name="InuDrawerM3SectionsInfo">Yan menü öğelerini yuvarlatılmış Material 3 kartları olarak gruplar.</string>
-    <string name="InuSettings">entinyGram Ayarları</string>
+    <string name="InuSettings">Hellgram Ayarları</string>
     <string name="InuSettingsInfo">through the land and wind I follow you</string>
     <string name="InuGeneral">Genel</string>
     <string name="InuMiscellaneous">Çeşitli</string>
@@ -20,7 +20,7 @@
     <string name="InuWideChannelPostsPreviewReply">İletilen kanal gönderisi</string>
     <string name="InuWideChannelPostsPreviewReplyLabel">Kanal gönderileri</string>
     <string name="InuAutoUpdateCheck">Güncellemeleri kontrol et</string>
-    <string name="InuAutoUpdateCheckInfo">Yeni sürümler için periyodik olarak entinyGram CI kanalını kontrol edin ve indirme teklifi alın.</string>
+    <string name="InuAutoUpdateCheckInfo">Yeni sürümler için periyodik olarak Hellgram CI kanalını kontrol edin ve indirme teklifi alın.</string>
     <string name="InuUpdatesIncludeBeta">Beta güncellemelerini al</string>
     <string name="InuPushHeader">Anlık bildirimler</string>
     <string name="InuUnifiedPush">UnifiedPush</string>
@@ -226,7 +226,7 @@
     <string name="InuShowPollResultsBeforeVote">Oylamadan önce anket sonuçlarını göster</string>
     <string name="InuShowPollResultsBeforeVoteInfo">Henüz oy vermediğiniz anonim anketler için bile oy yüzdelerini her zaman göster</string>
     <string name="InuMiscPreviewForwardedFrom">inu</string>
-    <string name="InuMiscPreviewForwardedMessage">hav! entinyGram mı yoksa inuGram mı? 🐶</string>
+    <string name="InuMiscPreviewForwardedMessage">hav! Hellgram mı yoksa inuGram mı? 🐶</string>
     <string name="InuMiscPreviewEditedMessage">ikisi de en iyisi 🐶⚡</string>
     <string name="InuDeleteForBoth">Varsayılan olarak \"Her iki taraftan sil\"</string>
     <string name="InuDeleteForBothMessages">Mesajlar</string>
@@ -312,7 +312,7 @@
     <string name="InuConfirmReactionText">**%2$s** sohbetine %1$s tepkisi gönderilsin mi?</string>
     <string name="InuNotificationIcon">Bildirim simgesi</string>
     <string name="InuNotificationIconTelegram">Telegram</string>
-    <string name="InuNotificationIconInugram">entinyGram</string>
+    <string name="InuNotificationIconInugram">Hellgram</string>
     <string name="InuDisableChatBubbles">Android bildirim balonlarını devre dışı bırak</string>
     <string name="InuInPlaceTranslation">Yerinde çeviri</string>
     <string name="InuTranslateWebPreviews">Web önizlemelerini çevir</string>
@@ -559,7 +559,7 @@
     <string name="InuFormattingPopupDivider">——————</string>
     <string name="InuCut">Kes</string>
     <string name="InuCodeLanguage">Kod dili</string>
-    <string name="InuVersion">entinyGram v%1$s (derleme %2$s)</string>
+    <string name="InuVersion">Hellgram v%1$s (derleme %2$s)</string>
 
     <string name="InuSearchFilter">Medyaya göre filtrele</string>
     <string name="InuSearchFilterPhotos">Fotoğraflar</string>
@@ -616,11 +616,11 @@
     <string name="InuBackupImportSheetCancel">Hayır, olduğu gibi bırak</string>
     <string name="InuBackupSettings">Yedekleme ve sıfırlama</string>
     <string name="InuBackupReset">Ayarları sıfırla</string>
-    <string name="InuBackupResetConfirm">Tüm entinyGram ayarları varsayılan değerlerine sıfırlanacaktır. Sohbetleriniz, hesaplarınız ve Telegram\'ın kendi ayarları aynı kalır.\n\nBu işlem geri alınamaz.</string>
+    <string name="InuBackupResetConfirm">Tüm Hellgram ayarları varsayılan değerlerine sıfırlanacaktır. Sohbetleriniz, hesaplarınız ve Telegram\'ın kendi ayarları aynı kalır.\n\nBu işlem geri alınamaz.</string>
     <string name="InuBackupResetSuccess">%1$d ayar sıfırlandı</string>
     <string name="InuBackupResetNoChanges">Ayarlar zaten varsayılan durumunda</string>
     <string name="InuCloudSync">Ayarları senkronize et</string>
-    <string name="InuCloudSyncDesc">entinyGram ayarlarınızı [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) üzerinden Telegram bulutuna yedekler — verileriniz sunucularımıza asla ulaşmaz.</string>
+    <string name="InuCloudSyncDesc">Hellgram ayarlarınızı [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) üzerinden Telegram bulutuna yedekler — verileriniz sunucularımıza asla ulaşmaz.</string>
     <string name="InuCloudSyncNow">Şimdi senkronize et</string>
     <string name="InuCloudSyncing">Senkronize ediliyor…</string>
     <string name="InuCloudRestore">Buluttan geri yükle</string>
@@ -687,7 +687,7 @@
     <string name="InuMentionInsertTitle">Bahsetme ekle</string>
     <string name="InuPasscode">Parola</string>
     <string name="InuPasscodeNeeded">Önce bir Telegram parolası ayarlayın.</string>
-    <string name="InuPasscodeShowInSettings">entinyGram ayarlarında göster</string>
+    <string name="InuPasscodeShowInSettings">Hellgram ayarlarında göster</string>
     <string name="InuPasscodeShowInSettingsInfo">Kapalı olduğunda, bu sayfa **yalnızca** aşağıdaki bağlantı üzerinden açılabilir. Şimdi kaydedin — bir kez oluşturulduktan sonra değişmez.</string>
     <string name="InuPasscodeAccountsInfo">Her hesabın kendine ait bir parolası olabilir. Kilit ekranında bu parolayı girmek uygulamanın kilidini açar ve o hesaba geçiş yapar.</string>
     <string name="InuPasscodeStateNone">Yapılandırılmadı</string>
@@ -738,12 +738,12 @@
     <string name="InuGoToMessagePrompt">Mesaj Kimliği (ID)</string>
     <string name="InuPrivacySecurity">Gizlilik &amp; Güvenlik</string>
     <string name="InuPerAccountPasscode">Hesap başına parola</string>
-    <string name="InuHideInugramSettings">entinyGram ayarlarını gizle</string>
+    <string name="InuHideInugramSettings">Hellgram ayarlarını gizle</string>
     <string name="InuParanoiaDisableNotifications">Bildirimleri devre dışı bırak</string>
     <string name="InuParanoiaHideOtherAccounts">Diğer hesapları gizle</string>
     <string name="InuParanoiaHideFolders">Klasörleri gizle</string>
     <string name="InuParanoiaDisguise">Telegram olarak gizle</string>
-    <string name="InuParanoiaDisguiseInfo">Yalnızca başlatıcı simgesi ve adı değişir. Android kısıtlamaları nedeniyle bildirimler ve uygulama içi ad hâlâ \"entinyGram\" olarak görünür.</string>
+    <string name="InuParanoiaDisguiseInfo">Yalnızca başlatıcı simgesi ve adı değişir. Android kısıtlamaları nedeniyle bildirimler ve uygulama içi ad hâlâ \"Hellgram\" olarak görünür.</string>
     <string name="InuParanoiaMode">Paranoia modu</string>
     <string name="InuParanoiaModeInfo">Paranoia modu, \"tehlikeli\" sohbetleri gizleyerek ve isteğe bağlı olarak varsayılan uygulama gibi görünerek bir başkasının telefonunuzu kontrol etmesine \"hazırlıklı\" olmanızı sağlar.</string>
     <string name="InuParanoiaLauncherShortcut">Başlatıcı kısayolu</string>
@@ -768,22 +768,22 @@
     <string name="InuBotSettings">Bot Ayarları</string>
     <string name="InuBotHelp">Bot Yardımı</string>
 
-    <string name="InuCrashTitle">entinyGram geçen sefer çöktü</string>
-    <string name="InuCrashTitleOom">entinyGram bellek yetersizliği yaşadı</string>
+    <string name="InuCrashTitle">Hellgram geçen sefer çöktü</string>
+    <string name="InuCrashTitleOom">Hellgram bellek yetersizliği yaşadı</string>
     <string name="InuCrashDesc">Bunun için üzgünüz. Düzeltilmesine yardımcı olmak için çökme günlüğünü geliştiriciyle paylaşabilirsiniz.</string>
     <string name="InuCrashDescOom">Bunun için üzgünüz. Çökme günlükleri bellek yetersizliği sorunları için pek yararlı değildir — bellek dökümü (heap dump) daha çok yardımcı olur.</string>
     <string name="InuCrashDescHeapDump">Bir bellek dökümü de kaydedildi. BUNU PAYLAŞMAYIN! Özel veriler içerir! İsterseniz kendiniz inceleyin ve bulgularınızı paylaşın — bu çok yardımcı olur.</string>
-    <string name="InuCrashOomEnableLogs">Gelecekteki her OOM durumunda bellek dökümü oluşturmak için entinyGram Ayarları > Hakkında bölümünden hata ayıklama modunu etkinleştirin.</string>
+    <string name="InuCrashOomEnableLogs">Gelecekteki her OOM durumunda bellek dökümü oluşturmak için Hellgram Ayarları > Hakkında bölümünden hata ayıklama modunu etkinleştirin.</string>
     <string name="InuCrashShare">Çökme günlüğünü paylaş</string>
     <string name="InuCrashShareHeapDump">Bellek dökümünü kaydet</string>
     <string name="InuCrashDiscard">Vazgeç</string>
     <string name="InuCrashChannel">Çökme kurtarma</string>
-    <string name="InuCrashNotifTitle">entinyGram çöktü</string>
+    <string name="InuCrashNotifTitle">Hellgram çöktü</string>
     <string name="InuCrashNotifText">Yeniden başlatmak için dokunun</string>
 
     <string name="InuLogs">Hata Ayıklama</string>
     <string name="InuLogsEnabled">Hata ayıklama modu</string>
-    <string name="InuExtraDebugLogs">[entinyGram] Ek hata ayıklama günlükleri</string>
+    <string name="InuExtraDebugLogs">[Hellgram] Ek hata ayıklama günlükleri</string>
     <string name="InuLogsSize">Günlük boyutu: %1$s</string>
     <string name="InuLogsShare">Günlükleri paylaş</string>
     <string name="InuLogsShareZip">Tüm günlükler (.zip)</string>
@@ -1008,7 +1008,7 @@
     <string name="InuAllowScreenshots">Ekran görüntülerine izin ver</string>
     <string name="InuAllowScreenshotsInfo">Gizli sohbetlerde, süreli medyalarda ve korumalı kanallarda ekran görüntüsü ve video kaydı almaya izin verir.</string>
     <string name="InuAntiDeletion">Silinmeyi önleme</string>
-    <string name="InuAppIconOldEntinygram">Eski entinyGram</string>
+    <string name="InuAppIconOldEntinygram">Eski Hellgram</string>
     <string name="InuCategoryAppearance">Görünüm ve Düzen</string>
     <string name="InuCategoryBackup">Ek ayarlar</string>
     <string name="InuCategoryBehavior">Davranış ve Araçlar</string>
@@ -1174,7 +1174,7 @@
     <string name="InuTypingSpoofActive">Şu anda etkin</string>
     <string name="InuTypingSpoofPickChat">Sohbet seç</string>
     <string name="InuTypingSpoofQuickListInfo">Önce sohbeti açmaya gerek kalmadan, sohbet başlığı menüsünde bulunan aynı yazma sahteciliği seçicisini açar.</string>
-    <string name="InuHideDevBadges">entinyGram rozetlerini devre dışı bırak</string>
+    <string name="InuHideDevBadges">Hellgram rozetlerini devre dışı bırak</string>
     <string name="InuHideDevBadgesInfo">Hiçbir anlamı yoktur, herhangi bir ayrıcalık sağlamaz — sadece geliştiriciden bir teşekkürdür</string>
     <string name="InuLanguages">Diller</string>
     <string name="InuLocalPremium">Yerel Telegram Premium</string>
@@ -1243,7 +1243,7 @@
     <string name="InuMsgDetailWaveformLength">Dalga formu örnekleri</string>
     <string name="InuNo">Hayır</string>
     <string name="InuNoProfilePhotos">Profil fotoğrafı bulunamadı</string>
-    <string name="InuNotificationIconOldEntinygram">Eski entinyGram</string>
+    <string name="InuNotificationIconOldEntinygram">Eski Hellgram</string>
     <string name="InuPoweredByProvider">Çeviriler %1$s tarafından desteklenmektedir.</string>
     <string name="InuProfilePhotosDeleted">Tüm profil fotoğrafları silindi</string>
     <string name="InuProfilePhotosDeletedCount">%1$d profil fotoğrafı silindi</string>
@@ -1440,9 +1440,9 @@
     <string name="InuIgnoreTranslationsDisabled">\"Çeviriler devre dışı\" seçeneğini yoksay</string>
     <string name="InuIgnoreTranslationsDisabledInfo">Kanal veya kullanıcı kendi Telegram ayarlarından çeviri çubuğunu kapatsa bile gösterir — mesaj menüsündeki Çevir düğmesi zaten bu ayarı yok sayar.</string>
     <string name="InuLocalCustomEmoji">Yerel Özel Emoji</string>
-    <string name="InuLocalCustomEmojiInfo">Premium özel emojileri gizli bağlantı olarak gönderir, Premium olmayan hesaplar da kullanabilir. entinyGram ve Nekogram animasyonlu gösterir, diğer istemciler normal bağlantı görür. Emoji panelini açmak için yerel Premium ile birlikte kullanın.</string>
-    <string name="InuDevBadge">entinyGram ekibi</string>
-    <string name="InuDevBadgeInfo">Bu hesap entinyGram ekibi tarafından tanınmaktadır.</string>
+    <string name="InuLocalCustomEmojiInfo">Premium özel emojileri gizli bağlantı olarak gönderir, Premium olmayan hesaplar da kullanabilir. Hellgram ve Nekogram animasyonlu gösterir, diğer istemciler normal bağlantı görür. Emoji panelini açmak için yerel Premium ile birlikte kullanın.</string>
+    <string name="InuDevBadge">Hellgram ekibi</string>
+    <string name="InuDevBadgeInfo">Bu hesap Hellgram ekibi tarafından tanınmaktadır.</string>
     <string name="InuMapProviderOsmLite">OpenStreetMap (hafif)</string>
     <string name="InuProfileSettingsRowsOrder">Ayarlar ekranı sırası</string>
     <string name="InuProfileSettingsRowsItems">Satırlar</string>

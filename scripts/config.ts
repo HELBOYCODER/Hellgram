@@ -112,6 +112,35 @@ export const forkSyncFiles: ForkSyncFile[] = [
     target: 'TMessagesProj/src/main/res/drawable',
   },
   {
+    source: 'src/res/drawable/*.png',
+    target: 'TMessagesProj/src/main/res/drawable',
+  },
+  {
+    source: 'src/res/mipmap-mdpi/*',
+    target: 'TMessagesProj/src/main/res/mipmap-mdpi',
+    replace: true,
+  },
+  {
+    source: 'src/res/mipmap-hdpi/*',
+    target: 'TMessagesProj/src/main/res/mipmap-hdpi',
+    replace: true,
+  },
+  {
+    source: 'src/res/mipmap-xhdpi/*',
+    target: 'TMessagesProj/src/main/res/mipmap-xhdpi',
+    replace: true,
+  },
+  {
+    source: 'src/res/mipmap-xxhdpi/*',
+    target: 'TMessagesProj/src/main/res/mipmap-xxhdpi',
+    replace: true,
+  },
+  {
+    source: 'src/res/mipmap-xxxhdpi/*',
+    target: 'TMessagesProj/src/main/res/mipmap-xxxhdpi',
+    replace: true,
+  },
+  {
     source: 'src/res/assets/*',
     target: 'TMessagesProj/src/main/assets',
   },

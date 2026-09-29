@@ -80,6 +80,7 @@ object AiComposeHelper {
 
     @JvmStatic
     fun providerDisplayName(id: Int): String = when (id) {
+        InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> "Sokhan (Google Free)"
         InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> "Gemini"
         InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> "OpenAI"
         InuConfig.TRANSCRIBE_PROVIDER_GROQ -> "Groq"

@@ -68,6 +68,7 @@ object TranscribeHelper {
     fun shouldUseCustomTranscribe(account: Int): Boolean = InuConfig.AI_TRANSCRIBE_ENABLED.value
 
     private fun isProviderConfigured(): Boolean = when (InuConfig.AI_TRANSCRIBE_PROVIDER.value) {
+        InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> true
         InuConfig.TRANSCRIBE_PROVIDER_CF ->
             InuConfig.AI_TRANSCRIBE_CF_ACCOUNT_ID.value.isNotBlank() && InuConfig.AI_TRANSCRIBE_CF_API_TOKEN.value.isNotBlank()
         InuConfig.TRANSCRIBE_PROVIDER_CUSTOM ->
@@ -75,7 +76,7 @@ object TranscribeHelper {
         InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> InuConfig.AI_PROVIDER_GEMINI_KEY.value.isNotBlank()
         InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> InuConfig.AI_PROVIDER_OPENAI_KEY.value.isNotBlank()
         InuConfig.TRANSCRIBE_PROVIDER_GROQ -> InuConfig.AI_PROVIDER_GROQ_KEY.value.isNotBlank()
-        else -> false
+        else -> true
     }
 
     @JvmStatic
@@ -163,12 +164,13 @@ object TranscribeHelper {
 
                 val transcribedText = withRetry {
                     when (provider) {
+                        InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> desu.inugram.helpers.stt.SokhanSttEngine.transcribe(file)
                         InuConfig.TRANSCRIBE_PROVIDER_GROQ -> transcribeGroq(file, fileName, mime, customPrompt)
                         InuConfig.TRANSCRIBE_PROVIDER_GEMINI -> transcribeGemini(file, mime, customPrompt)
                         InuConfig.TRANSCRIBE_PROVIDER_OPENAI -> transcribeOpenAI(file, fileName, mime, customPrompt)
                         InuConfig.TRANSCRIBE_PROVIDER_CF -> transcribeCloudflare(file, customPrompt)
                         InuConfig.TRANSCRIBE_PROVIDER_CUSTOM -> transcribeCustom(file, fileName, mime, customPrompt)
-                        else -> throw IllegalStateException("Unknown provider: $provider")
+                        else -> desu.inugram.helpers.stt.SokhanSttEngine.transcribe(file)
                     }
                 }
 

@@ -682,18 +682,19 @@ object InuConfig {
     @JvmField
     val AI_TEMPERATURE = FloatItem("ai_temperature", 1.0f)
 
-    const val TRANSCRIBE_PROVIDER_GROQ = 0
-    const val TRANSCRIBE_PROVIDER_GEMINI = 1
-    const val TRANSCRIBE_PROVIDER_OPENAI = 2
-    const val TRANSCRIBE_PROVIDER_CF = 3
-    const val TRANSCRIBE_PROVIDER_CUSTOM = 4
-    const val AI_PROVIDER_OPENROUTER = 5
+    const val TRANSCRIBE_PROVIDER_SOKHAN = 0
+    const val TRANSCRIBE_PROVIDER_GROQ = 1
+    const val TRANSCRIBE_PROVIDER_GEMINI = 2
+    const val TRANSCRIBE_PROVIDER_OPENAI = 3
+    const val TRANSCRIBE_PROVIDER_CF = 4
+    const val TRANSCRIBE_PROVIDER_CUSTOM = 5
+    const val AI_PROVIDER_OPENROUTER = 6
 
     @JvmField
-    val AI_TRANSCRIBE_ENABLED = BoolItem("ai_transcribe_enabled", false)
+    val AI_TRANSCRIBE_ENABLED = BoolItem("ai_transcribe_enabled", true)
 
     @JvmField
-    val AI_TRANSCRIBE_PROVIDER = IntItem("ai_transcribe_provider", TRANSCRIBE_PROVIDER_GROQ)
+    val AI_TRANSCRIBE_PROVIDER = IntItem("ai_transcribe_provider", TRANSCRIBE_PROVIDER_SOKHAN)
 
     @JvmField
     val AI_TRANSCRIBE_GROQ_KEY = StringItem("ai_transcribe_groq_key", "", exportable = false)

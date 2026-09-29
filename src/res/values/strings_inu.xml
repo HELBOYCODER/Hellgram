@@ -18,7 +18,7 @@
     <string name="InuDrawerM3SectionsInfo">Groups the navigation drawer menu rows into rounded Material 3 cards.</string>
     <string name="InuShowDrawerAccounts">Show accounts in drawer</string>
     <string name="InuShowDrawerAccountsInfo">Show the expandable account switcher below your profile.</string>
-    <string name="InuSettings">entinyGram Settings</string>
+    <string name="InuSettings">Hellgram Settings</string>
     <string name="InuSettingsInfo">through the land and wind I follow you</string>
     <string name="InuGeneral">General</string>
     <string name="InuMiscellaneous">Miscellaneous</string>
@@ -28,7 +28,7 @@
     <string name="InuWideChannelPostsPreviewReply">Forwarded channel post</string>
     <string name="InuWideChannelPostsPreviewReplyLabel">Channel posts</string>
     <string name="InuAutoUpdateCheck">Check for updates</string>
-    <string name="InuAutoUpdateCheckInfo">Periodically check the entinyGram CI channel for new releases and offer to download them.</string>
+    <string name="InuAutoUpdateCheckInfo">Periodically check the Hellgram CI channel for new releases and offer to download them.</string>
     <string name="InuUpdatesIncludeBeta">Catch beta updates</string>
     <string name="InuPushHeader">Push notifications</string>
     <string name="InuUnifiedPush">UnifiedPush</string>
@@ -308,7 +308,7 @@
     <string name="InuShowPollResultsBeforeVote">Show poll results before voting</string>
     <string name="InuShowPollResultsBeforeVoteInfo">Always show vote percentages, even for anonymous polls you haven\'t voted in yet</string>
     <string name="InuMiscPreviewForwardedFrom">inu</string>
-    <string name="InuMiscPreviewForwardedMessage">woof! entinyGram or inuGram? 🐶</string>
+    <string name="InuMiscPreviewForwardedMessage">woof! Hellgram or inuGram? 🐶</string>
     <string name="InuMiscPreviewEditedMessage">both are the best, doggo base 🐶⚡</string>
     <string name="InuDeleteForBoth">\"Delete for both\" by default</string>
     <string name="InuDeleteForBothMessages">Messages</string>
@@ -399,9 +399,9 @@
     <string name="InuConfirmReactionText">Send %1$s reaction in **%2$s**?</string>
     <string name="InuNotificationIcon">Notification icon</string>
     <string name="InuNotificationIconTelegram">Telegram</string>
-    <string name="InuNotificationIconInugram">entinyGram</string>
-    <string name="InuNotificationIconOldEntinygram">Old entinyGram</string>
-    <string name="InuAppIconOldEntinygram">Old entinyGram</string>
+    <string name="InuNotificationIconInugram">Hellgram</string>
+    <string name="InuNotificationIconOldEntinygram">Old Hellgram</string>
+    <string name="InuAppIconOldEntinygram">Old Hellgram</string>
     <string name="InuDisableChatBubbles">Disable Android notification bubbles</string>
     <string name="InuInPlaceTranslation">In-place translation</string>
     <string name="InuTranslateWebPreviews">Translate web previews</string>
@@ -774,7 +774,7 @@
     <string name="InuFormattingPopupDivider">——————</string>
     <string name="InuCut">Cut</string>
     <string name="InuCodeLanguage">Code language</string>
-    <string name="InuVersion">entinyGram %1$s (%2$s)</string>
+    <string name="InuVersion">Hellgram %1$s (%2$s)</string>
     <string name="InuCategories">Categories</string>
     <string name="InuDataBackup">Backup &amp; Sync</string>
 
@@ -845,11 +845,11 @@
     <string name="InuBackupImportSheetCancel">No, leave as is</string>
     <string name="InuBackupSettings">Backup &amp; reset</string>
     <string name="InuBackupReset">Reset settings</string>
-    <string name="InuBackupResetConfirm">All entinyGram settings will be reset to their default values. Your chats, accounts, and Telegram\'s own settings stay the same.\n\nThis cannot be undone.</string>
+    <string name="InuBackupResetConfirm">All Hellgram settings will be reset to their default values. Your chats, accounts, and Telegram\'s own settings stay the same.\n\nThis cannot be undone.</string>
     <string name="InuBackupResetSuccess">Reset %1$d settings</string>
     <string name="InuBackupResetNoChanges">Settings are already at their defaults</string>
     <string name="InuCloudSync">Sync settings</string>
-    <string name="InuCloudSyncDesc">Backs up your entinyGram settings to Telegram cloud via [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) — your data never touches our servers.</string>
+    <string name="InuCloudSyncDesc">Backs up your Hellgram settings to Telegram cloud via [CloudStorage API](https://core.telegram.org/bots/webapps#cloudstorage) — your data never touches our servers.</string>
     <string name="InuCloudSyncNow">Sync now</string>
     <string name="InuCloudSyncing">Syncing…</string>
     <string name="InuCloudRestore">Restore from cloud</string>
@@ -924,7 +924,7 @@
     <string name="InuMentionInsertTitle">Insert mention</string>
     <string name="InuPasscode">Passcode</string>
     <string name="InuPasscodeNeeded">Set up a Telegram passcode first.</string>
-    <string name="InuPasscodeShowInSettings">Show in entinyGram settings</string>
+    <string name="InuPasscodeShowInSettings">Show in Hellgram settings</string>
     <string name="InuPasscodeShowInSettingsInfo">When off, this page can **only** be opened via the link below. Save it now — it doesn\'t change once generated.</string>
     <string name="InuPasscodeAccountsInfo">Each account can have its own passcode. Entering it on the lock screen unlocks the app and switches to that account.</string>
     <string name="InuPasscodeStateNone">Not configured</string>
@@ -984,13 +984,13 @@
     <string name="InuGoToMessagePrompt">Message ID</string>
     <string name="InuPrivacySecurity">Privacy &amp; Security</string>
     <string name="InuPerAccountPasscode">Per-account passcode</string>
-    <string name="InuHideInugramSettings">Hide entinyGram settings</string>
+    <string name="InuHideInugramSettings">Hide Hellgram settings</string>
     <string name="InuParanoiaDisableNotifications">Disable notifications</string>
     <string name="InuParanoiaHideOtherAccounts">Hide other accounts</string>
     <string name="InuParanoiaHideFolders">Hide folders</string>
     <string name="InuParanoiaHideMyStories">Hide my stories</string>
     <string name="InuParanoiaDisguise">Disguise as Telegram</string>
-    <string name="InuParanoiaDisguiseInfo">Only the launcher icon and name change. Notifications and the in-app name still show \"entinyGram\", due to Android limitations.</string>
+    <string name="InuParanoiaDisguiseInfo">Only the launcher icon and name change. Notifications and the in-app name still show \"Hellgram\", due to Android limitations.</string>
     <string name="InuDisguiseName" translatable="false">Telegram</string>
     <string name="InuParanoiaMode">Paranoia mode</string>
     <string name="InuParanoiaModeInfo">Paranoia mode lets you \"prepare\" for someone else checking your phone, by hiding any \"dangerous\" chats, and optionally disguising as the stock app.</string>
@@ -1016,17 +1016,17 @@
     <string name="InuBotSettings">Bot Settings</string>
     <string name="InuBotHelp">Bot Help</string>
 
-    <string name="InuCrashTitle">entinyGram crashed last time</string>
-    <string name="InuCrashTitleOom">entinyGram ran out of memory</string>
+    <string name="InuCrashTitle">Hellgram crashed last time</string>
+    <string name="InuCrashTitleOom">Hellgram ran out of memory</string>
     <string name="InuCrashDesc">Sorry about that. You can share the crash log with the developer to help fix it.</string>
     <string name="InuCrashDescOom">Sorry about that. Crash logs aren\'t very useful for out-of-memory issues — a heap dump is what helps.</string>
     <string name="InuCrashDescHeapDump">A heap dump was also saved. DO NOT SHARE IT! It contains private data! Take a look at it yourself, if you want, and share your findings — that would help a lot.</string>
-    <string name="InuCrashOomEnableLogs">Enable debug mode in entinyGram Settings > About to create a heap dump on every future OOM.</string>
+    <string name="InuCrashOomEnableLogs">Enable debug mode in Hellgram Settings > About to create a heap dump on every future OOM.</string>
     <string name="InuCrashShare">Share crash log</string>
     <string name="InuCrashShareHeapDump">Save heap dump</string>
     <string name="InuCrashDiscard">Discard</string>
     <string name="InuCrashChannel">Crash recovery</string>
-    <string name="InuCrashNotifTitle">entinyGram crashed</string>
+    <string name="InuCrashNotifTitle">Hellgram crashed</string>
     <string name="InuCrashNotifText">Tap to restart</string>
 
     <string name="InuLogs">Debug</string>
@@ -1432,7 +1432,7 @@
     <string name="InuLocalPremium">Local Telegram Premium</string>
     <string name="InuLocalPremiumInfo">Unlocks client-side Premium perks: star badge, emoji statuses, unlimited translation bar, premium reactions and animations. Server-side perks like bigger uploads and cloud limits still need an official subscription.</string>
     <string name="InuLocalCustomEmoji">Local Custom Emoji</string>
-    <string name="InuLocalCustomEmojiInfo">Sends Premium emoji as hidden links so non-Premium accounts can use them anywhere. entinyGram and Nekogram show them animated; other clients see a plain emoji link. Pair with Local Telegram Premium to unlock the emoji picker.</string>
+    <string name="InuLocalCustomEmojiInfo">Sends Premium emoji as hidden links so non-Premium accounts can use them anywhere. Hellgram and Nekogram show them animated; other clients see a plain emoji link. Pair with Local Telegram Premium to unlock the emoji picker.</string>
     <string name="InuUnlimitedLimits">Unlimited Limits</string>
     <string name="InuUnlimitedPinnedChats">Unlimited Pinned Chats</string>
     <string name="InuUnlimitedPinnedChatsInfo">Pins extra chats locally past Telegram\'s server limit — they stay first on this device only, never syncing or counting toward the limit elsewhere.</string>
@@ -1504,10 +1504,10 @@
     <string name="InuDeletedMarkStyleEyeCrossed">Eye Crossed</string>
     <string name="InuDeletedMarkPreviewText">Hey! This is a secret 🤫</string>
     <string name="InuDeletedMarkPreviewSender">Alina</string>
-    <string name="InuHideDevBadges">Disable entinyGram badges</string>
+    <string name="InuHideDevBadges">Disable Hellgram badges</string>
     <string name="InuHideDevBadgesInfo">They don\'t mean anything, don\'t give any advantage — just a thank-you from the developer</string>
-    <string name="InuDevBadge">entinyGram team</string>
-    <string name="InuDevBadgeInfo">This account is recognized by the entinyGram team.</string>
+    <string name="InuDevBadge">Hellgram team</string>
+    <string name="InuDevBadgeInfo">This account is recognized by the Hellgram team.</string>
     <string name="InuStopBot">Stop bot</string>
     <string name="InuStopBotAlert">Are you sure you want to stop **%1$s**? It won\'t be able to send you messages anymore.</string>
     <string name="InuStopBotAction">Stop</string>

@@ -50,11 +50,19 @@ class AiProvidersSettingsActivity : SettingsPageActivity() {
         val voiceOn = meta.voice && InuConfig.AI_TRANSCRIBE_PROVIDER.value == meta.id
 
         when (meta.id) {
+            InuConfig.TRANSCRIBE_PROVIDER_SOKHAN -> addSokhanVoiceBlock(items, meta, voiceOn)
             InuConfig.TRANSCRIBE_PROVIDER_CUSTOM -> addCustomBlock(items, meta, chatOn, voiceOn)
             InuConfig.TRANSCRIBE_PROVIDER_CF -> addSingleScopeVoiceBlock(items, meta, voiceOn)
             InuConfig.AI_PROVIDER_OPENROUTER -> addSingleScopeChatBlock(items, meta, chatOn)
             else -> addNamedProviderBlock(items, meta, chatOn, voiceOn)
         }
+    }
+
+    private fun addSokhanVoiceBlock(items: ArrayList<UItem>, meta: ProviderMeta, voiceOn: Boolean) {
+        items.add(
+            UItem.asCheck(ACTIVE_VOICE_BASE + meta.id, LocaleController.getString(R.string.InuAiProvidersActiveForVoice)).also { it.checked = voiceOn }
+        )
+        items.add(UItem.asShadow("سخن (Sokhan): تبدیل آنلاین صوت به متن بر پایه گوگل — کاملاً رایگان و بدون نیاز به کلید"))
     }
 
     private fun addNamedProviderBlock(items: ArrayList<UItem>, meta: ProviderMeta, chatOn: Boolean, voiceOn: Boolean) {
@@ -336,6 +344,7 @@ class AiProvidersSettingsActivity : SettingsPageActivity() {
         private val BUTTON_FETCH_VOICE_MODELS = InuUtils.generateId()
 
         private val ALL_PROVIDERS = listOf(
+            ProviderMeta(InuConfig.TRANSCRIBE_PROVIDER_SOKHAN, chat = false, voice = true),
             ProviderMeta(InuConfig.TRANSCRIBE_PROVIDER_GEMINI, chat = true, voice = true),
             ProviderMeta(InuConfig.TRANSCRIBE_PROVIDER_OPENAI, chat = true, voice = true),
             ProviderMeta(InuConfig.TRANSCRIBE_PROVIDER_GROQ, chat = true, voice = true),
