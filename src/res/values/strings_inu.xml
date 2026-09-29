@@ -1562,7 +1562,7 @@
     <string name="InuFeedNewPostsIndicatorPill">Pill</string>
     <string name="InuRestartApp">Restart app</string>
     <string name="InuRestartAppAlert">The app will close and reopen. Unsent drafts and in-progress uploads may be lost.</string>
-    <string name="InuBuiltInTunnel">Entiny Tunnel</string>
+    <string name="InuBuiltInTunnel">Hellboy Tunnel</string>
     <string name="InuTunnelProtocol">Protocol</string>
     <string name="InuTunnelProtoMasque">MASQUE (HTTP/3)</string>
     <string name="InuTunnelProtoWireGuard">WireGuard</string>
@@ -1598,7 +1598,8 @@
     <string name="InuTunnelPeerInfo">Optional ip:port from a WARP endpoint scanner (e.g. Parvaz Scanner). Leave empty for automatic discovery.</string>
     <string name="InuTunnelPeerSave">Save</string>
     <string name="InuTunnelPeerClear">Clear</string>
-    <string name="InuTunnelLogs">Engine log</string>
+    <string name="InuTunnelLogs">Logs &amp; Errors</string>
+    <string name="InuTranslationSource">Source language</string>
     <string name="InuTunnelObfuscation">Obfuscation</string>
     <string name="InuTunnelFragment">Fragment ClientHello</string>
     <string name="InuTunnelFragmentInfo">Split the TLS handshake to slip past DPI. Enable if the tunnel cannot connect on a heavily censored network.</string>

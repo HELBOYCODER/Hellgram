@@ -233,8 +233,11 @@ object TranslateHelper {
         }
 
         val originalLanguage = selected.messageOwner?.originalLanguage
+        // entiny: use configured source language when auto-detect is off
+        val configuredSourceLang = InuConfig.TRANSLATE_SOURCE_LANGUAGE.value
         when {
             originalLanguage != null -> perform(originalLanguage)
+            configuredSourceLang.isNotEmpty() -> perform(configuredSourceLang)
             InuConfig.TRANSLATE_AUTO_DETECT_LANG.value && LanguageDetector.hasSupport() -> LanguageDetector.detectLanguage(
                 text.toString(),
                 { perform(it) },

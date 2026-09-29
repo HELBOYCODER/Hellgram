@@ -97,6 +97,28 @@ object LogsHelper {
         }?.maxByOrNull { it.lastModified() }
     }
 
+    // entiny: read last N lines from current log file for combined logs view
+    fun recentCrashLogs(maxLines: Int = 100): String {
+        val file = currentLogFile() ?: return ""
+        return try {
+            val lines = file.readLines(Charsets.UTF_8)
+            val filtered = lines.filter { line ->
+                line.contains("Exception", ignoreCase = true) ||
+                line.contains("Error", ignoreCase = true) ||
+                line.contains("FATAL", ignoreCase = true) ||
+                line.contains("crash", ignoreCase = true) ||
+                line.contains("Caused by", ignoreCase = true)
+            }
+            if (filtered.isEmpty()) {
+                lines.takeLast(maxLines).joinToString("\n")
+            } else {
+                filtered.takeLast(maxLines).joinToString("\n")
+            }
+        } catch (_: Throwable) {
+            ""
+        }
+    }
+
     private fun stageZip(): File? {
         val dir = AndroidUtilities.getLogsDir() ?: return null
         val cacheDir = AndroidUtilities.getCacheDir().apply { mkdirs() }

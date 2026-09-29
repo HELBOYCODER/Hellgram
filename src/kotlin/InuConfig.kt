@@ -1573,6 +1573,11 @@ object InuConfig {
     @JvmField
     val TRANSLATE_AUTO_DETECT_LANG = BoolItem("translate_auto_detect_lang", true)
 
+    // entiny: source language override - when set, forces translation from this language instead of auto-detect.
+    // Empty string means auto-detect (default). Useful when auto-detect fails (e.g. Farsi → Finglish).
+    @JvmField
+    val TRANSLATE_SOURCE_LANGUAGE = StringItem("translate_source_language", "")
+
     // entiny: keep global target language separate so per-dialog translations do not overwrite user preference
     @JvmField
     val TRANSLATE_TARGET_LANGUAGE = StringItem("translate_target_language", "")

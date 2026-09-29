@@ -6,7 +6,7 @@ import androidx.webkit.ProxyController
 import androidx.webkit.WebViewFeature
 import desu.inugram.helpers.network.BuiltInTunnelHelper
 
-// entiny: routes all WebView traffic through the built-in tunnel's local HTTP port; ported from Suni TV (MIT)
+// helboy: routes all WebView traffic through the built-in tunnel's local HTTP port
 object HelboyWebViewProxy {
     private const val TAG = "InuHelboyProxy"
     private var activeRule: String? = null

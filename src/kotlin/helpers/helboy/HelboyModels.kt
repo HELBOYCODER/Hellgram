@@ -3,7 +3,7 @@ package desu.inugram.helpers.helboy
 import org.json.JSONArray
 import org.json.JSONObject
 
-// entiny: Helboy TV channel model; data pipeline ported from Suni TV (MIT), channels from iptv sources
+// helboy: Helboy TV channel model; data pipeline from iptv sources
 enum class HelboyKind(val slug: String) {
     TV("tv"),
     RADIO("radio"),

@@ -82,6 +82,25 @@ class TranslatorSettingsActivity : SettingsPageActivity() {
         items.add(UItem.asShadow(null))
 
         items.add(check(TOGGLE_AUTO_DETECT_LANG, R.string.InuTranslateAutoDetectLang, InuConfig.TRANSLATE_AUTO_DETECT_LANG))
+        // entiny: source language picker - when auto-detect is off, forces translation from this language
+        if (!InuConfig.TRANSLATE_AUTO_DETECT_LANG.value) {
+            val srcCode = InuConfig.TRANSLATE_SOURCE_LANGUAGE.value
+            val srcLabel = if (srcCode.isNotEmpty()) {
+                org.telegram.ui.Components.TranslateAlert2.languageName(srcCode)?.let {
+                    org.telegram.ui.Components.TranslateAlert2.capitalFirst(it)
+                } ?: srcCode.uppercase()
+            } else {
+                LocaleController.getString(R.string.InuTranslateAutoDetectLang)
+            }
+            items.add(
+                UItem.asButton(
+                    BUTTON_SOURCE_LANG,
+                    R.drawable.msg_translate,
+                    LocaleController.getString(R.string.InuTranslationSource),
+                    srcLabel,
+                )
+            )
+        }
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuTranslateAutoDetectLangInfo)))
         items.add(check(TOGGLE_TRANSLATE_OUTGOING, R.string.InuTranslateOutgoing, InuConfig.TRANSLATE_OUTGOING))
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuTranslateOutgoingInfo)))
@@ -133,6 +152,8 @@ class TranslatorSettingsActivity : SettingsPageActivity() {
             BUTTON_DO_NOT_TRANSLATE -> presentFragment(RestrictedLanguagesSelectActivity())
 
             BUTTON_TARGET_LANG -> presentFragment(TranslationTargetActivity())
+
+            BUTTON_SOURCE_LANG -> presentFragment(TranslationSourceActivity())
         }
     }
 
@@ -167,6 +188,7 @@ class TranslatorSettingsActivity : SettingsPageActivity() {
         private val TOGGLE_SHOW_TRANSLATE_CHAT_BUTTON = InuUtils.generateId()
         private val BUTTON_DO_NOT_TRANSLATE = InuUtils.generateId()
         private val BUTTON_TARGET_LANG = InuUtils.generateId()
+        private val BUTTON_SOURCE_LANG = InuUtils.generateId()
 
         private val BOOL_TOGGLES: Map<Int, InuConfig.BoolItem> = mapOf(
             TOGGLE_AUTO_TRANSLATE_ALL to InuConfig.AUTO_TRANSLATE_ALL,

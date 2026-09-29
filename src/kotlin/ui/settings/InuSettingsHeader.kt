@@ -37,9 +37,9 @@ class InuSettingsHeader(context: Context) : LinearLayout(context) {
 
     private val title = TextView(context).apply {
         text = if (BuildVars.isBetaApp()) {
-            "entinyGram ${LocaleController.getString(R.string.InuVersionBetaSuffix)}"
+            "Hellgram ${LocaleController.getString(R.string.InuVersionBetaSuffix)}"
         } else {
-            "entinyGram"
+            "Hellgram"
         }
         setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 18f)
         setTypeface(AndroidUtilities.bold())

@@ -1568,7 +1568,7 @@
     <string name="InuFeedNewPostsIndicatorPill">Плашка</string>
     <string name="InuRestartApp">Перезапустить приложение</string>
     <string name="InuRestartAppAlert">Приложение закроется и откроется снова. Несохранённые черновики и незавершённые загрузки могут быть потеряны.</string>
-    <string name="InuBuiltInTunnel">Entiny Tunnel</string>
+    <string name="InuBuiltInTunnel">Hellboy Tunnel</string>
     <string name="InuHelboyAddFavorite">Add to favorites</string>
     <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1591,7 +1591,7 @@
     <string name="InuTunnelStatusOff">Disconnected</string>
     <string name="InuTunnelConnect">Connect</string>
     <string name="InuTunnelDisconnect">Disconnect</string>
-    <string name="InuTunnelLogs">Engine log</string>
+    <string name="InuTunnelLogs">Logs <string name="InuTunnelLogs">Engine log</string>amp; Errors</string>
     <string name="InuTunnelPeer">Connection endpoint</string>
     <string name="InuTunnelPeerClear">Clear</string>
     <string name="InuTunnelPeerInfo">Optional ip:port from a WARP endpoint scanner (e.g. Parvaz Scanner). Leave empty for automatic discovery.</string>

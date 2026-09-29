@@ -5,6 +5,8 @@ import android.view.View
 import android.widget.EditText
 import desu.inugram.SearchRegistry
 import desu.inugram.helpers.InuUtils
+import desu.inugram.helpers.LogsHelper
+import desu.inugram.helpers.network.BuiltInTunnelHelper
 import desu.inugram.helpers.update.UpdateHelper
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.ApplicationLoader
@@ -90,6 +92,8 @@ class InuSettingsActivity : SettingsPageActivity() {
         items.add(mkSubPageButton(CAT_ANNOYANCES, R.drawable.inu_tabler_shield_cancel, LocaleController.getString(R.string.InuAnnoyances)))
         items.add(mkSubPageButton(BUTTON_TOS, R.drawable.inu_tabler_lock_open, LocaleController.getString(R.string.InuTOS)))
         items.add(mkSubPageButton(CAT_SYSTEM, R.drawable.inu_tabler_device_floppy, LocaleController.getString(R.string.InuCategoryBackup)))
+        items.add(mkSubPageButton(CAT_TUNNEL, R.drawable.inu_tabler_shield_lock, LocaleController.getString(R.string.InuBuiltInTunnel)))
+        items.add(UItem.asButton(BUTTON_LOGS, R.drawable.inu_tabler_terminal_2, LocaleController.getString(R.string.InuTunnelLogs)))
         items.add(UItem.asShadow(null))
 
         items.add(
@@ -97,7 +101,7 @@ class InuSettingsActivity : SettingsPageActivity() {
                 BUTTON_CHANNEL_LINK,
                 R.drawable.inu_tabler_brand_telegram,
                 LocaleController.getString(R.string.InuAboutChannel),
-                "@entinyGram"
+                "@HellboyBot"
             )
         )
         items.add(
@@ -105,7 +109,7 @@ class InuSettingsActivity : SettingsPageActivity() {
                 BUTTON_GITHUB,
                 R.drawable.inu_tabler_brand_github,
                 LocaleController.getString(R.string.InuAboutGitHub),
-                "Entaytion/entinyGram"
+                "HELBOYCODER/entinyGram"
             )
         )
     }
@@ -131,9 +135,32 @@ class InuSettingsActivity : SettingsPageActivity() {
             CAT_ANNOYANCES -> presentFragment(AnnoyancesSettingsActivity())
             BUTTON_TOS -> presentFragment(TosSettingsActivity())
             CAT_SYSTEM -> presentFragment(AdditionalSettingsActivity())
-            BUTTON_CHANNEL_LINK -> Browser.openUrl(ctx, "https://t.me/entinyGram")
-            BUTTON_GITHUB -> Browser.openUrl(ctx, "https://github.com/Entaytion/EntinyGram")
+            CAT_TUNNEL -> presentFragment(TunnelSettingsActivity())
+            BUTTON_LOGS -> showCombinedLogsDialog()
+            BUTTON_CHANNEL_LINK -> Browser.openUrl(ctx, "https://t.me/HellboyBot")
+            BUTTON_GITHUB -> Browser.openUrl(ctx, "https://github.com/HELBOYCODER/entinyGram")
         }
+    }
+
+    private fun showCombinedLogsDialog() {
+        val ctx = parentActivity ?: return
+        val tunnelLogs = BuiltInTunnelHelper.logsText().ifBlank { "— no tunnel logs —" }
+        val crashLogs = desu.inugram.helpers.LogsHelper.recentCrashLogs().ifBlank { "— no crash logs —" }
+        val combined = buildString {
+            appendLine("═══ TUNNEL LOGS ═══")
+            appendLine(tunnelLogs.takeLast(3000))
+            appendLine()
+            appendLine("═══ CRASH / ERROR LOGS ═══")
+            appendLine(crashLogs.takeLast(3000))
+        }
+        org.telegram.ui.ActionBar.AlertDialog.Builder(ctx, resourceProvider)
+            .setTitle(LocaleController.getString(R.string.InuTunnelLogs))
+            .setMessage(combined)
+            .setPositiveButton(LocaleController.getString(R.string.Done), null)
+            .setNeutralButton(LocaleController.getString(R.string.Copy)) { _, _ ->
+                AndroidUtilities.addToClipboard(combined)
+            }
+            .show()
     }
 
     private fun checkForUpdates() {
@@ -174,6 +201,8 @@ class InuSettingsActivity : SettingsPageActivity() {
         private val CAT_ANNOYANCES = InuUtils.generateId()
         private val BUTTON_TOS = InuUtils.generateId()
         private val CAT_SYSTEM = InuUtils.generateId()
+        private val CAT_TUNNEL = InuUtils.generateId()
+        private val BUTTON_LOGS = InuUtils.generateId()
         private val BUTTON_CHANNEL_LINK = InuUtils.generateId()
         private val BUTTON_GITHUB = InuUtils.generateId()
 

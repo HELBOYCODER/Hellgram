@@ -8,8 +8,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.zip.GZIPInputStream
 
-// entiny: bundled Helboy TV channel database loader (asset helboy_data.bin, gzip JSON),
-// ported from Suni TV (MIT)
+// helboy: bundled Helboy TV channel database loader (asset helboy_data.bin, gzip JSON)
 object HelboyStore {
     private const val TAG = "InuHelboy"
     private var root: JSONObject? = null
