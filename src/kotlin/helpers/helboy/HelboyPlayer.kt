@@ -13,11 +13,12 @@ object HelboyPlayer {
     fun play(fragment: BaseFragment, ch: HelboyChannel) {
         val webPage = "file:///android_asset/helboy_player/index.html"
         if (ch.hasStreams) {
+            val url = ch.primaryUrl ?: return
             fragment.presentFragment(
                 HelboyNativePlayerActivity(
-                    ch.primaryUrl,
+                    url,
                     ch.name,
-                    "$webPage#u=${Uri.encode(ch.primaryUrl)}&n=${Uri.encode(ch.name)}",
+                    "$webPage#u=${Uri.encode(url)}&n=${Uri.encode(ch.name)}",
                 ),
             )
             return

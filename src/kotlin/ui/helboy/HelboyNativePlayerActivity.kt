@@ -55,7 +55,7 @@ class HelboyNativePlayerActivity(
 
         val texture = TextureView(context)
         textureView = texture
-        root.addView(texture, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT.toFloat(), Gravity.CENTER))
+        root.addView(texture, LayoutHelper.createFrame(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER))
         texture.setOnClickListener {
             val player = videoPlayer ?: return@setOnClickListener
             if (player.isPlaying()) player.pause() else player.play()
