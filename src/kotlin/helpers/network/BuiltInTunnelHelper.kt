@@ -52,7 +52,7 @@ object BuiltInTunnelHelper {
     @Volatile private var startGeneration = 0L
     private var lastNetworkChange = 0L
     private var autoRetries = 0
-    private val MAX_AUTO_RETRIES = 3
+    private val MAX_AUTO_RETRIES = 5
 
     @JvmStatic
     fun init(context: Context) {
@@ -387,13 +387,24 @@ object BuiltInTunnelHelper {
                         // SOCKS5 CONNECT to succeed before we trust it.
                         lastStatus = "verifying proxy"
                         postState()
-                        if (waitForProxyReady(20000)) {
+                        // helboy: the first data-plane round-trip on a fresh tunnel can be slow
+                        // (WG handshake recovery alone was observed at 5.1s RTT). 20s killed
+                        // engines that had actually validated fine; poll up to 60s and, if the
+                        // engine still believes it is connected at the end, keep the tunnel up
+                        // and let the watchdog decide instead of tearing it down.
+                        if (waitForProxyReady(60000)) {
                             onConnected("127.0.0.1:$SOCKS_PORT")
                         } else {
-                            val tail = try {
-                                NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ")
-                            } catch (_: Throwable) { "" }
-                            onFailed("port not forwarding $tail".take(240))
+                            val stillUp = try { NativeEngine.nativeGetState() == 4 } catch (_: Throwable) { false }
+                            if (stillUp) {
+                                Log.w(TAG, "proxy probe timed out but engine reports connected; keeping tunnel up")
+                                onConnected("127.0.0.1:$SOCKS_PORT (unverified)")
+                            } else {
+                                val tail = try {
+                                    NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ")
+                                } catch (_: Throwable) { "" }
+                                onFailed("port not forwarding $tail".take(240))
+                            }
                         }
                         return@Thread
                     }
