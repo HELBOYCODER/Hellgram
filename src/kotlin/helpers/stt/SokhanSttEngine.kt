@@ -39,8 +39,13 @@ object SokhanSttEngine {
         val code = connection.responseCode
         if (code !in 200..299) {
             val err = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
-            FileLog.e("SokhanSttEngine error HTTP $code: $err")
-            throw IOException("Google Speech error HTTP $code: $err")
+            // entiny: surface the real cause (HTTP code + body) so the copyable error report
+            // shows exactly why Google rejected the request.
+            desu.inugram.helpers.diagnostics.ErrorLog.record(
+                "sokhan-stt",
+                "provider=Sokhan lang=$lang audio=${flacBytes.size}B HTTP $code body=${err.take(400)}"
+            )
+            throw IOException("Google Speech error HTTP $code: ${err.take(300)}")
         }
 
         val response = connection.inputStream.bufferedReader().use { it.readText() }
@@ -48,6 +53,14 @@ object SokhanSttEngine {
 
         if (result.isNotEmpty() && (lang.startsWith("fa") || isPersian(result))) {
             result = PersianHalfspace.apply(result)
+        }
+        if (result.isEmpty()) {
+            // entiny: HTTP 200 with empty result is the most common silent failure (unsupported
+            // audio, too short, wrong codec rate). Record context for the error report.
+            desu.inugram.helpers.diagnostics.ErrorLog.record(
+                "sokhan-stt",
+                "provider=Sokhan lang=$lang audio=${flacBytes.size}B HTTP 200 but empty result"
+            )
         }
         return result
     }

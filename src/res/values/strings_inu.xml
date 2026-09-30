@@ -1630,4 +1630,7 @@
     <string name="InuTunnelPerfLow">Low</string>
     <string name="InuTunnelPerfMedium">Medium</string>
     <string name="InuTunnelPerfHigh">High</string>
+    <string name="InuErrorLogTitle">Error log</string>
+    <string name="InuErrorLogHasEntries">errors recorded — tap to view &amp; copy</string>
+    <string name="InuErrorLogInfo">Full Hellgram error journal: transcription, tunnel and other failures with real causes. Tap to copy and report.</string>
 </resources>

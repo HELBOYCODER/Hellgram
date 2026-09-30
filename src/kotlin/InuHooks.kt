@@ -63,6 +63,7 @@ object InuHooks {
         Utilities.globalQueue.postRunnable {
             CloudSettingsHelper.attachAutoSyncListener()
             ProxyVpnHelper.init(context)
+            desu.inugram.helpers.diagnostics.ErrorLog.init(context)
             desu.inugram.helpers.network.BuiltInTunnelHelper.init(context)
             desu.inugram.helpers.helboy.HelboyStore.warmUp()
             UrlCleanerHelper.preload()

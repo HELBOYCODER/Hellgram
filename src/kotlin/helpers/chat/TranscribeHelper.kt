@@ -199,6 +199,11 @@ object TranscribeHelper {
             } catch (e: Exception) {
                 if (isCancelled(key)) return@execute
                 FileLog.e("TranscribeHelper error", e)
+                desu.inugram.helpers.diagnostics.ErrorLog.record(
+                    "transcribe",
+                    "provider=${InuConfig.AI_TRANSCRIBE_PROVIDER.value} file=${file.name} size=${file.length()}",
+                    e
+                )
                 AndroidUtilities.runOnUIThread {
                     inFlight.remove(key)
                     notifyStateChange(account, messageObject)
@@ -293,11 +298,39 @@ object TranscribeHelper {
         }
     }
 
+    // entiny: a thin bulletin hides the actual cause. Record the full failure in the shared
+    // Hellgram error journal and open a copyable report dialog, so "transcription failed" can
+    // always be handed back with its real cause (provider, HTTP code, response body).
     private fun showError(msg: String) {
-        BulletinFactory.global().createSimpleBulletin(
-            R.raw.error,
-            LocaleController.formatString(R.string.InuAiTranscribeFailed, msg)
-        ).show()
+        desu.inugram.helpers.diagnostics.ErrorLog.record("transcribe", msg)
+        AndroidUtilities.runOnUIThread {
+            try {
+                val activity = AndroidUtilities.findActivity(org.telegram.ui.LaunchActivity.instance)
+                    ?: throw IllegalStateException("no activity")
+                val body = "Hellgram transcription error\n\n" +
+                    desu.inugram.helpers.diagnostics.ErrorLog.text()
+                val tv = android.widget.TextView(activity).apply {
+                    text = body
+                    setTextIsSelectable(true)
+                    textSize = 11f
+                    setPadding(48, 32, 48, 16)
+                }
+                val scroll = android.widget.ScrollView(activity).apply { addView(tv) }
+                org.telegram.ui.ActionBar.AlertDialog.Builder(activity)
+                    .setTitle(LocaleController.getString(R.string.InuAiTranscribeFailed, "…").substringBefore(":").trim())
+                    .setView(scroll)
+                    .setPositiveButton(LocaleController.getString(R.string.InuCopyLogs)) { _, _ ->
+                        org.telegram.messenger.AndroidUtilities.addToClipboard(body)
+                    }
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .show()
+            } catch (_: Throwable) {
+                BulletinFactory.global().createSimpleBulletin(
+                    R.raw.error,
+                    LocaleController.formatString(R.string.InuAiTranscribeFailed, msg)
+                ).show()
+            }
+        }
     }
 
     private fun transcribeGroq(file: File, fileName: String, mime: String, prompt: String): String {

@@ -1615,4 +1615,7 @@
     <string name="InuTunnelPerfLow">低</string>
     <string name="InuTunnelPerfMedium">中</string>
     <string name="InuTunnelPerfHigh">高</string>
+    <string name="InuErrorLogTitle">错误日志</string>
+    <string name="InuErrorLogHasEntries">已记录错误 — 点按查看并复制</string>
+    <string name="InuErrorLogInfo">完整的 Hellgram 错误日志：转录、隧道及其他故障的真实原因。点按即可复制并报告。</string>
 </resources>

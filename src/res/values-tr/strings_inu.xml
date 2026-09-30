@@ -1613,4 +1613,7 @@
     <string name="InuTunnelPerfLow">Düşük</string>
     <string name="InuTunnelPerfMedium">Orta</string>
     <string name="InuTunnelPerfHigh">Yüksek</string>
+    <string name="InuErrorLogTitle">Hata günlüğü</string>
+    <string name="InuErrorLogHasEntries">hata kaydedildi — görmek ve kopyalamak için dokun</string>
+    <string name="InuErrorLogInfo">Tam Hellgram hata günlüğü: transkripsiyon, tünel ve diğer arızaların gerçek nedenleri. Kopyalamak için dokun.</string>
 </resources>

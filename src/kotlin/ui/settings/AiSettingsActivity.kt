@@ -129,6 +129,8 @@ class AiSettingsActivity : SettingsPageActivity() {
                 (view as? NotificationsCheckCell)?.isChecked = InuConfig.AI_TRANSCRIBE_ENABLED.toggle()
             }
             BUTTON_AI_ROLE -> presentFragment(AiRolesSettingsActivity())
+
+            BUTTON_ERROR_LOG -> desu.inugram.helpers.diagnostics.ErrorLog.showReport()
             TOGGLE_AI_STREAM -> {
                 (view as? NotificationsCheckCell)?.isChecked = InuConfig.AI_STREAM_ENABLED.toggle()
             }

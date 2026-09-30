@@ -1614,4 +1614,7 @@
     <string name="InuTunnelPerfLow">Low</string>
     <string name="InuTunnelPerfMedium">Medium</string>
     <string name="InuTunnelPerfHigh">High</string>
+    <string name="InuErrorLogTitle">エラーログ</string>
+    <string name="InuErrorLogHasEntries">エラーが記録されています — タップして表示・コピー</string>
+    <string name="InuErrorLogInfo">Hellgram の完全なエラージャーナル：文字起こし、トンネルなどの実際の原因。タップしてコピーして報告。</string>
 </resources>

@@ -1628,4 +1628,7 @@
     <string name="InuTunnelPerfLow">Низький</string>
     <string name="InuTunnelPerfMedium">Середній</string>
     <string name="InuTunnelPerfHigh">Високий</string>
+    <string name="InuErrorLogTitle">Журнал помилок</string>
+    <string name="InuErrorLogHasEntries">записано помилок — натисніть, щоб переглянути та скопіювати</string>
+    <string name="InuErrorLogInfo">Повний журнал помилок Hellgram: розшифровка, тунель та інші збої з реальними причинами. Натисніть, щоб скопіювати та повідомити.</string>
 </resources>

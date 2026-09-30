@@ -1636,4 +1636,7 @@
     <string name="InuTunnelPerfLow">Низкий</string>
     <string name="InuTunnelPerfMedium">Средний</string>
     <string name="InuTunnelPerfHigh">Высокий</string>
+    <string name="InuErrorLogTitle">Журнал ошибок</string>
+    <string name="InuErrorLogHasEntries">Записаны ошибки — нажмите для просмотра и копирования</string>
+    <string name="InuErrorLogInfo">Полный журнал ошибок Hellgram: расшифровка, туннель и другие сбои с реальными причинами. Нажмите, чтобы скопировать и сообщить.</string>
 </resources>
