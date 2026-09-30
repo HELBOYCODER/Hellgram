@@ -1564,6 +1564,10 @@
     <string name="InuHelboyAddFavorite">Add to favorites</string>
         <string name="InuHelboyOnline">Онлайн</string>
     <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyQualityAuto">Авто</string>
+    <string name="InuHelboyQuality">Якість</string>
+    <string name="InuHelboySpeed">Швидкість</string>
+    <string name="InuHelboySubtitles">Субтитри</string>
     <string name="InuHelboyNativePlayer">Дивитися у рідному плеєрі</string>
 <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1634,4 +1638,10 @@
     <string name="InuErrorLogTitle">Журнал помилок</string>
     <string name="InuErrorLogHasEntries">записано помилок — натисніть, щоб переглянути та скопіювати</string>
     <string name="InuErrorLogInfo">Повний журнал помилок Hellgram: розшифровка, тунель та інші збої з реальними причинами. Натисніть, щоб скопіювати та повідомити.</string>
+    <string name="InuHelboyTv">Hellboy TV</string>
+    <string name="InuHelboyTvInfo">Супутникові та IPTV-канали</string>
+    <string name="InuHelboyQualityAuto">Авто якість</string>
+    <string name="InuPillStackTunnel">Тунель</string>
+    <string name="InuPillStackTunnelOn">Тунель увімк</string>
+    <string name="InuPillStackTunnelOff">Тунель вимк</string>
 </resources>

@@ -1549,6 +1549,10 @@
     <string name="InuHelboyAddFavorite">Add to favorites</string>
         <string name="InuHelboyOnline">Açık</string>
     <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyQualityAuto">Otomatik</string>
+    <string name="InuHelboyQuality">Kalite</string>
+    <string name="InuHelboySpeed">Hız</string>
+    <string name="InuHelboySubtitles">Altyazı</string>
     <string name="InuHelboyNativePlayer">Yerel oynatıcıda oynat</string>
 <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1619,4 +1623,10 @@
     <string name="InuErrorLogTitle">Hata günlüğü</string>
     <string name="InuErrorLogHasEntries">hata kaydedildi — görmek ve kopyalamak için dokun</string>
     <string name="InuErrorLogInfo">Tam Hellgram hata günlüğü: transkripsiyon, tünel ve diğer arızaların gerçek nedenleri. Kopyalamak için dokun.</string>
+    <string name="InuHelboyTv">Hellboy TV</string>
+    <string name="InuHelboyTvInfo">Uydu ve IPTV kanalları</string>
+    <string name="InuHelboyQualityAuto">Otomatik kalite</string>
+    <string name="InuPillStackTunnel">Tünel</string>
+    <string name="InuPillStackTunnelOn">Tünel açık</string>
+    <string name="InuPillStackTunnelOff">Tünel kapalı</string>
 </resources>

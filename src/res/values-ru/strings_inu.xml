@@ -1572,6 +1572,10 @@
     <string name="InuHelboyAddFavorite">Add to favorites</string>
         <string name="InuHelboyOnline">Онлайн</string>
     <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyQualityAuto">Авто</string>
+    <string name="InuHelboyQuality">Качество</string>
+    <string name="InuHelboySpeed">Скорость</string>
+    <string name="InuHelboySubtitles">Субтитры</string>
     <string name="InuHelboyNativePlayer">Смотреть в нативном плеере</string>
 <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1642,4 +1646,10 @@
     <string name="InuErrorLogTitle">Журнал ошибок</string>
     <string name="InuErrorLogHasEntries">Записаны ошибки — нажмите для просмотра и копирования</string>
     <string name="InuErrorLogInfo">Полный журнал ошибок Hellgram: расшифровка, туннель и другие сбои с реальными причинами. Нажмите, чтобы скопировать и сообщить.</string>
+    <string name="InuHelboyTv">Hellboy TV</string>
+    <string name="InuHelboyTvInfo">Спутниковые и IPTV-каналы</string>
+    <string name="InuHelboyQualityAuto">Авто качество</string>
+    <string name="InuPillStackTunnel">Туннель</string>
+    <string name="InuPillStackTunnelOn">Туннель вкл</string>
+    <string name="InuPillStackTunnelOff">Туннель выкл</string>
 </resources>

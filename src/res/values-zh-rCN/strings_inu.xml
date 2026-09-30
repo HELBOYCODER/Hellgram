@@ -1551,6 +1551,10 @@
     <string name="InuHelboyAddFavorite">Add to favorites</string>
         <string name="InuHelboyOnline">在线</string>
     <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyQualityAuto">自动</string>
+    <string name="InuHelboyQuality">画质</string>
+    <string name="InuHelboySpeed">速度</string>
+    <string name="InuHelboySubtitles">字幕</string>
     <string name="InuHelboyNativePlayer">用原生播放器播放</string>
 <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
@@ -1621,4 +1625,10 @@
     <string name="InuErrorLogTitle">错误日志</string>
     <string name="InuErrorLogHasEntries">已记录错误 — 点按查看并复制</string>
     <string name="InuErrorLogInfo">完整的 Hellgram 错误日志：转录、隧道及其他故障的真实原因。点按即可复制并报告。</string>
+    <string name="InuHelboyTv">Hellboy TV</string>
+    <string name="InuHelboyTvInfo">卫星与 IPTV 频道</string>
+    <string name="InuHelboyQualityAuto">自动画质</string>
+    <string name="InuPillStackTunnel">隧道</string>
+    <string name="InuPillStackTunnelOn">隧道已连接</string>
+    <string name="InuPillStackTunnelOff">隧道已断开</string>
 </resources>

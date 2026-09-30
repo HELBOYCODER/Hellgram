@@ -1584,6 +1584,10 @@
     <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
         <string name="InuHelboyOnline">Online</string>
     <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyQualityAuto">Auto</string>
+    <string name="InuHelboyQuality">Quality</string>
+    <string name="InuHelboySpeed">Speed</string>
+    <string name="InuHelboySubtitles">Subtitles</string>
     <string name="InuHelboyNativePlayer">Play with native player</string>
 <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuTunnelConnect">Connect</string>
@@ -1636,4 +1640,10 @@
     <string name="InuErrorLogTitle">Error log</string>
     <string name="InuErrorLogHasEntries">errors recorded — tap to view &amp; copy</string>
     <string name="InuErrorLogInfo">Full Hellgram error journal: transcription, tunnel and other failures with real causes. Tap to copy and report.</string>
+    <string name="InuHelboyTv">Hellboy TV</string>
+    <string name="InuHelboyTvInfo">Live satellite &amp; IPTV channels</string>
+    <string name="InuHelboyQualityAuto">Auto quality</string>
+    <string name="InuPillStackTunnel">Tunnel</string>
+    <string name="InuPillStackTunnelOn">Tunnel on</string>
+    <string name="InuPillStackTunnelOff">Tunnel off</string>
 </resources>

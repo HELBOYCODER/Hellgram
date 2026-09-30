@@ -12,6 +12,7 @@ import desu.inugram.helpers.pillstack.pills.NetSpeedPill
 import desu.inugram.helpers.pillstack.pills.ProxyPill
 import desu.inugram.helpers.pillstack.pills.RamPill
 import desu.inugram.helpers.pillstack.pills.StoragePill
+import desu.inugram.helpers.pillstack.pills.TunnelPill
 import desu.inugram.helpers.pillstack.pills.WeatherPill
 import org.telegram.messenger.FileLog
 import org.telegram.ui.ActionBar.Theme
@@ -38,6 +39,7 @@ object PillRegistry {
         register(PillInfo(PillType.DC_PING.id, PillType.DC_PING.iconRes) { c, r -> DcPingPill(c, r) })
         register(PillInfo(PillType.BATTERY.id, PillType.BATTERY.iconRes) { c, r -> BatteryPill(c, r) })
         register(PillInfo(PillType.STORAGE.id, PillType.STORAGE.iconRes) { c, r -> StoragePill(c, r) })
+        register(PillInfo(PillType.TUNNEL.id, PillType.TUNNEL.iconRes) { c, r -> TunnelPill(c, r) })
     }
 
     fun register(info: PillInfo) {
