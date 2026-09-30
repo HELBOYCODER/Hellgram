@@ -1549,7 +1549,10 @@
     <string name="InuOnlineDotsInfo">在线圆点显示为蓝色，并在联系人离线后显示为黄色或红色而不是直接隐藏：20分钟内为黄色，1小时内为红色。</string>
     <string name="InuBuiltInTunnel">Hellboy Tunnel</string>
     <string name="InuHelboyAddFavorite">Add to favorites</string>
-    <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
+        <string name="InuHelboyOnline">在线</string>
+    <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyNativePlayer">用原生播放器播放</string>
+<string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
     <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
     <string name="InuHelboySearchHint">Search channels</string>

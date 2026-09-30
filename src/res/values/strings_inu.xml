@@ -1582,7 +1582,10 @@
     <string name="InuHelboyPlay">Play</string>
     <string name="InuHelboyAddFavorite">Add to favorites</string>
     <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
-    <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
+        <string name="InuHelboyOnline">Online</string>
+    <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyNativePlayer">Play with native player</string>
+<string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuTunnelConnect">Connect</string>
     <string name="InuTunnelDisconnect">Disconnect</string>
     <string name="InuTunnelStatusFailed" formatted="false">Failed: %1$s</string>

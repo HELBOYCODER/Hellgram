@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.EditText
 import desu.inugram.helpers.InuUtils
 import desu.inugram.helpers.helboy.HelboyChannel
+import desu.inugram.helpers.helboy.HelboyChannelHealth
 import desu.inugram.helpers.helboy.HelboyKind
 import desu.inugram.helpers.helboy.HelboyPlayer
 import desu.inugram.helpers.helboy.HelboyStore
@@ -29,6 +30,18 @@ class HelboyListActivity : SettingsPageActivity() {
     private var query = ""
     private val countryCodes = HashMap<Int, String>()
     private val channelsById = HashMap<Int, HelboyChannel>()
+    private val healthIds = HashMap<Int, String>()
+    private var healthUiVersion = 0
+    // entiny: probe channel streams when a list opens so each row shows ● Online 320ms or ● قطع;
+    // HelboyChannelHealth batches them and calls back once when the first batch settles.
+    private fun startHealthProbe(list: List<HelboyChannel>) {
+        if (kind != HelboyKind.TV) return
+        HelboyChannelHealth.ensurePersianRefresh()
+        HelboyChannelHealth.probe(list) {
+            healthUiVersion++
+            listView?.adapter?.update(false)
+        }
+    }
 
     private fun configure(mode: Mode, kind: HelboyKind, country: String): HelboyListActivity = apply {
         this.mode = mode
@@ -82,12 +95,20 @@ class HelboyListActivity : SettingsPageActivity() {
     }
 
     private fun addChannels(items: ArrayList<UItem>, list: List<HelboyChannel>) {
+        if (list.isNotEmpty() && healthUiVersion == 0 && mode == Mode.CHANNELS) startHealthProbe(list)
         for (ch in list) {
             if (!matches(ch.name, ch.country)) continue
             val id = InuUtils.generateId()
             channelsById[id] = ch
             val star = if (HelboyStore.isFavorite(ch.id)) "★ " else ""
-            items.add(UItem.asRadio(id, star + ch.name, helboyFlag(ch.country)).also { it.checked = false })
+            // helboy: status subtitle — ● Online <ping>ms / ● قطع (offline) / … probing
+            val subtitle = when (val st = HelboyChannelHealth.statusOf(ch)) {
+                null -> helboyFlag(ch.country)
+                else -> if (st.online) "● ${LocaleController.getString(R.string.InuHelboyOnline)} ${st.pingMs}ms" +
+                        (if (ch.country.isNotBlank()) "  ${helboyFlag(ch.country)}" else "")
+                        else "● ${LocaleController.getString(R.string.InuHelboyOffline)}  ${helboyFlag(ch.country)}"
+            }
+            items.add(UItem.asRadio(id, star + ch.name, subtitle).also { it.checked = false })
         }
     }
 
@@ -109,18 +130,27 @@ class HelboyListActivity : SettingsPageActivity() {
 
     private fun showChannelDialog(context: Context, ch: HelboyChannel) {
         val favorite = HelboyStore.isFavorite(ch.id)
+        val status = HelboyChannelHealth.statusOf(ch)
+        val statusLine = when {
+            status == null -> ""
+            status.online -> "\n● ${LocaleController.getString(R.string.InuHelboyOnline)} — ${status.pingMs}ms"
+            else -> "\n● ${LocaleController.getString(R.string.InuHelboyOffline)}"
+        }
         val items = arrayOf(
             LocaleController.getString(R.string.InuHelboyPlay),
+            LocaleController.getString(R.string.InuHelboyNativePlayer),
             LocaleController.getString(if (favorite) R.string.InuHelboyRemoveFavorite else R.string.InuHelboyAddFavorite),
         )
         AlertDialog.Builder(context)
-            .setTitle(ch.name)
+            .setTitle(ch.name + statusLine)
             .setItems(items) { dialog, which ->
-                if (which == 0) {
-                    HelboyPlayer.play(this, ch)
-                } else {
-                    HelboyStore.toggleFavorite(ch)
-                    listView?.adapter?.update(false)
+                when (which) {
+                    0 -> HelboyPlayer.play(this, ch)
+                    1 -> HelboyPlayer.playNative(this, ch)
+                    else -> {
+                        HelboyStore.toggleFavorite(ch)
+                        listView?.adapter?.update(false)
+                    }
                 }
                 dialog.dismiss()
             }

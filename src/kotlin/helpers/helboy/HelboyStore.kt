@@ -111,6 +111,78 @@ object HelboyStore {
         return out
     }
 
+    // entiny: merge a bundled refresh playlist (iptv-org Persian/Iran m3u, curated) into the
+    // in-memory view. Matching is by normalized name so we can also upgrade an existing channel
+    // with a logo instead of duplicating it. IDs get an "rf-" prefix to avoid nanoid collisions.
+    @Synchronized
+    fun mergeExternal(refresh: JSONObject) {
+        val r = ensureLoaded() ?: return
+        val allArr = r.optJSONObject("tv")?.optJSONObject("by_category")?.optJSONArray("all") ?: return
+        val byCountry = r.optJSONObject("tv")?.optJSONObject("by_country")
+        val meta = r.optJSONObject("tv")?.optJSONObject("meta")
+        val existing = HashMap<String, JSONObject>()
+        for (i in 0 until allArr.length()) {
+            val o = allArr.optJSONObject(i) ?: continue
+            existing[normalizeName(o.optString("name"))] = o
+        }
+        val channels = refresh.optJSONArray("channels") ?: return
+        for (i in 0 until channels.length()) {
+            val e = channels.optJSONObject(i) ?: continue
+            val name = e.optString("name")
+            if (name.isBlank()) continue
+            val url = e.optString("url")
+            if (url.isBlank()) continue
+            val key = normalizeName(name)
+            val cur = existing[key]
+            if (cur != null) {
+                // upgrade: logo + extra stream source on the existing channel
+                val sources = cur.optJSONObject("sources") ?: JSONObject().also { cur.put("sources", it) }
+                val streams = sources.optJSONArray("streams")
+                if (streams == null) sources.put("streams", org.json.JSONArray().put(url))
+                else {
+                    var have = false
+                    for (j in 0 until streams.length()) if (streams.optString(j) == url) have = true
+                    if (!have) streams.put(url)
+                }
+                if (cur.optString("logo").isBlank()) cur.put("logo", e.optString("logo"))
+                continue
+            }
+            val country = e.optString("country", "ir").lowercase().ifBlank { "ir" }
+            val obj = JSONObject()
+                .put("nanoid", "rf-" + Integer.toHexString((key + url).hashCode()))
+                .put("name", name)
+                .put("logo", e.optString("logo", ""))
+                .put("country", country)
+                .put("languages", org.json.JSONArray().put("fas"))
+                .put("isGeoBlocked", false)
+                .put("sources", JSONObject().put("streams", org.json.JSONArray().put(url)))
+            allArr.put(obj)
+            existing[key] = obj
+            byCountry?.optJSONArray(country)?.put(obj)
+            meta?.optJSONObject(country)?.let {
+                it.put("hasChannels", true)
+                it.put("channelCount", it.optInt("channelCount", 0) + 1)
+            }
+        }
+    }
+
+    private fun normalizeName(n: String): String =
+        n.lowercase().replace(Regex("\\(.*?\\)"), "").replace(Regex("[^a-z0-9\\u0600-\\u06FF]+"), "")
+
+    // helboy: resolve a channel by id across all sections (used by the player's JS bridge)
+    fun findById(id: String): HelboyChannel? {
+        if (id.isBlank()) return null
+        val r = ensureLoaded() ?: return null
+        for (slug in arrayOf("tv", "radio", "webcams")) {
+            val arr = r.optJSONObject(slug)?.optJSONObject("by_category")?.optJSONArray("all") ?: continue
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i) ?: continue
+                if (obj.optString("nanoid") == id) return HelboyChannel.fromJson(obj)
+            }
+        }
+        return null
+    }
+
     private var favorites: HashSet<String>? = null
 
     fun favoriteIds(): MutableSet<String> {

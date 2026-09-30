@@ -11,6 +11,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import desu.inugram.helpers.helboy.HelboyPlayer
+import desu.inugram.helpers.helboy.HelboyStore
 import desu.inugram.helpers.helboy.HelboyWebViewProxy
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.NotificationCenter
@@ -25,9 +27,18 @@ import org.telegram.ui.Components.LayoutHelper
 class HelboyWebPlayerActivity(
     private val startUrl: String = "",
     private val titleText: CharSequence = "",
+    private val channelId: String = "",
 ) : BaseFragment() {
 
     private var webView: WebView? = null
+
+    // helboy: fallback when the bridge gets a bare URL (channel not in DB anymore)
+    private fun fragmentPresentNative(url: String, name: String) {
+        val webPage = "file:///android_asset/helboy_player/index.html"
+        presentFragment(
+            HelboyNativePlayerActivity(url, name, "$webPage#u=${Uri.encode(url)}&n=${Uri.encode(name)}"),
+        )
+    }
 
     // entiny: the WebView proxy override is cleared whenever the tunnel drops, so re-assert it and
     // reload once the tunnel is back instead of leaving a dead player on screen.
@@ -63,6 +74,31 @@ class HelboyWebPlayerActivity(
         web.settings.useWideViewPort = true
         web.settings.loadWithOverviewMode = true
         web.setBackgroundColor(Color.BLACK)
+        // helboy: JS bridge for the YouTube-style UI — the ★ button and the error screen's
+        // "Native player" button call back into Telegram instead of dead-clicking in the WebView.
+        web.addJavascriptInterface(object {
+            @android.webkit.JavascriptInterface
+            fun openNative(url: String, name: String) {
+                AndroidUtilities.runOnUIThread {
+                    val frag = HelboyWebPlayerActivity(this@HelboyWebPlayerActivity)
+                    // reuse playNative: it resolves the stream against the current channel DB entry
+                    val ch = HelboyStore.findById(channelId)
+                    if (ch != null && ch.hasStreams) {
+                        HelboyPlayer.playNative(frag, ch)
+                    } else if (url.isNotBlank()) {
+                        fragmentPresentNative(url, name)
+                    }
+                }
+            }
+
+            @android.webkit.JavascriptInterface
+            fun toggleFavorite(v: String) {
+                AndroidUtilities.runOnUIThread {
+                    val ch = HelboyStore.findById(channelId) ?: return@runOnUIThread
+                    HelboyStore.toggleFavorite(ch)
+                }
+            }
+        }, "HelboyHost")
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
 

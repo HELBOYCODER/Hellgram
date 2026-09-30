@@ -1547,7 +1547,10 @@
     <string name="InuOnlineDotsInfo">Çevrim içi noktasını mavi gösterin ve bir kişi çevrim dışı olduğunda gizlemek yerine sarı veya kırmızıya boyayın — son 20 dakika içinde sarı, son bir saat içinde kırmızı.</string>
     <string name="InuBuiltInTunnel">Hellboy Tunnel</string>
     <string name="InuHelboyAddFavorite">Add to favorites</string>
-    <string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
+        <string name="InuHelboyOnline">Açık</string>
+    <string name="InuHelboyOffline">قطع</string>
+    <string name="InuHelboyNativePlayer">Yerel oynatıcıda oynat</string>
+<string name="InuHelboyNoFavorites">You have no favorite channels yet</string>
     <string name="InuHelboyPlay">Play</string>
     <string name="InuHelboyRemoveFavorite">Remove from favorites</string>
     <string name="InuHelboySearchHint">Search channels</string>

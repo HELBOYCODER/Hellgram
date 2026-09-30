@@ -5,185 +5,255 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Helboy TV</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family:system-ui,-apple-system,sans-serif; color:#fff; }
-  #player { width:100%; height:100%; position:absolute; top:0; left:0; }
-  #player video, #player iframe { width:100%; height:100%; }
-  #overlay { position:absolute; top:0; left:0; right:0; z-index:10; padding:12px 16px;
-             background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%); pointer-events:none;
-             transition:opacity .3s; }
-  #ch-name { font-size:16px; font-weight:600; text-shadow:0 1px 3px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #ch-info { font-size:11px; opacity:.7; margin-top:2px; }
-  #buffering { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; display:none; text-align:center; }
-  #buffering .spinner { width:48px; height:48px; border:4px solid rgba(255,255,255,.2); border-top-color:#fff;
-                        border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 10px; }
+  :root {
+    --yt-red: #ff0033;
+    --yt-bg: #0f0f0f;
+    --yt-surface-2: #272727;
+    --yt-text: #f1f1f1;
+    --yt-text-dim: #aaaaaa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; background:var(--yt-bg); overflow:hidden;
+               font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif; color:var(--yt-text); }
+
+  /* ---- stage ---- */
+  #stage { position:absolute; top:0; left:0; right:0; bottom:0; background:#000; }
+  #player, #player video, #player iframe { width:100%; height:100%; }
+  .plyr { --plyr-color-main: var(--yt-red); --plyr-video-background:#000; --plyr-font-family:'Roboto',sans-serif; height:100%; }
+
+  /* Plyr control bar — flattened into a YouTube-ish single translucent strip */
+  .plyr--video .plyr__controls {
+    background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.55) 60%,transparent 100%) !important;
+    padding:10px 10px 8px !important; gap:2px;
+  }
+  .plyr__control { border-radius:50% !important; }
+  .plyr__control:hover { background:rgba(255,255,255,.15) !important; }
+  .plyr__control--overlaid {
+    background:rgba(255,0,51,.9) !important; width:66px !important; height:66px !important; padding:20px !important;
+    box-shadow:0 4px 18px rgba(0,0,0,.6);
+  }
+  .plyr__control--overlaid:hover { background:var(--yt-red) !important; transform:scale(1.06); }
+  .plyr__progress input[type=range]::-webkit-slider-thumb { background:var(--yt-red) !important; }
+  .plyr__progress__buffer { background:rgba(255,255,255,.25) !important; }
+  .plyr__time { font-size:12px !important; font-variant-numeric:tabular-nums; }
+  .plyr__menu__container { background:rgba(28,28,30,.98) !important; border-radius:12px !important; }
+  .plyr__menu__container .plyr__control[role=menuitemradio][aria-checked=true]::before { background:var(--yt-red) !important; }
+
+  /* ---- YouTube-style mini header (channel avatar + name + actions) ---- */
+  #topbar {
+    position:absolute; top:0; left:0; right:0; z-index:12;
+    display:flex; align-items:center; gap:11px; padding:11px 14px;
+    background:linear-gradient(180deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.35) 65%,transparent 100%);
+    transition:opacity .25s;
+  }
+  #topbar.hidden { opacity:0; pointer-events:none; }
+  #avatar {
+    width:38px; height:38px; flex:0 0 38px; border-radius:50%; overflow:hidden;
+    background:var(--yt-surface-2); display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; color:#fff; border:1.5px solid rgba(255,255,255,.18);
+  }
+  #avatar img { width:100%; height:100%; object-fit:cover; }
+  #meta { flex:1 1 auto; min-width:0; }
+  #ch-name { font-size:15px; font-weight:500; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #ch-info { font-size:11.5px; color:var(--yt-text-dim); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hbtn {
+    flex:0 0 auto; width:36px; height:36px; border-radius:50%; border:none; background:rgba(255,255,255,.1);
+    color:#fff; font-size:16px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .hbtn:active { background:rgba(255,255,255,.28); }
+  .hbtn.on { background:var(--yt-red); }
+
+  /* ---- LIVE badge ---- */
+  #live {
+    position:absolute; top:14px; right:14px; z-index:13; display:none;
+    background:var(--yt-red); color:#fff; font-size:11px; font-weight:700;
+    letter-spacing:.6px; padding:3px 8px; border-radius:4px;
+  }
+  #live.show { display:block; }
+  #live::before { content:'● '; }
+
+  /* ---- centre state (spinner / error) ---- */
+  #buffering { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:8; display:none; text-align:center; }
+  #buffering .spinner { width:44px; height:44px; border:3px solid rgba(255,255,255,.22);
+                        border-top-color:var(--yt-red); border-radius:50%; animation:spin .75s linear infinite; margin:0 auto 12px; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  #error-overlay { position:absolute; top:0; left:0; right:0; bottom:0; z-index:20; display:none;
-                   background:rgba(0,0,0,.85); align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:30px; }
+  #buffering .txt { font-size:12.5px; color:var(--yt-text-dim); }
+
+  #error-overlay { position:absolute; inset:0; z-index:20; display:none;
+                   background:rgba(15,15,15,.94); align-items:center; justify-content:center;
+                   flex-direction:column; text-align:center; padding:32px; }
   #error-overlay.show { display:flex; }
-  #error-overlay .icon { font-size:48px; margin-bottom:16px; }
-  #error-overlay .msg { font-size:14px; opacity:.8; margin-bottom:20px; line-height:1.5; }
-  #error-overlay button { background:#e53935; color:#fff; border:none; padding:12px 32px; border-radius:8px;
-                          font-size:15px; font-weight:600; cursor:pointer; }
-  #quality-badge { position:absolute; bottom:70px; right:16px; z-index:10; background:rgba(0,0,0,.6);
-                   padding:4px 10px; border-radius:4px; font-size:11px; pointer-events:none; display:none; }
-  /* helboy: self-contained quality selector; does not touch Plyr's own DOM */
-  #quality-btn { position:absolute; bottom:64px; left:16px; z-index:11; background:rgba(0,0,0,.65); color:#fff;
-                 border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; display:none; }
-  #quality-menu { position:absolute; bottom:96px; left:16px; z-index:12; background:rgba(0,0,0,.9);
-                  border-radius:6px; padding:4px 0; display:none; min-width:110px; max-height:55vh; overflow-y:auto; }
-  #quality-menu div { padding:9px 16px; font-size:12px; cursor:pointer; white-space:nowrap; }
-  #quality-menu div:hover { background:rgba(229,57,53,.35); }
-  #quality-menu div.sel { color:#e53935; font-weight:600; }
-  .plyr { --plyr-color: #e53935; }
-  .plyr__controls { padding: 8px 12px !important; }
+  #error-overlay .icon { font-size:52px; margin-bottom:14px; }
+  #error-overlay .msg { font-size:13.5px; color:var(--yt-text-dim); margin-bottom:22px; line-height:1.6; max-width:340px; white-space:pre-line; }
+  #error-overlay .actions { display:flex; gap:10px; }
+  #error-overlay button { border:none; padding:11px 26px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer; }
+  #retry-btn { background:var(--yt-red); color:#fff; }
+  #native-btn { background:rgba(255,255,255,.14); color:#fff; }
+
+  /* ---- quality chip (kept separate from Plyr's own DOM) ---- */
+  #quality-btn { position:absolute; bottom:58px; right:12px; z-index:11; display:none;
+                 background:rgba(28,28,30,.92); color:#fff; border:none; padding:6px 12px;
+                 border-radius:16px; font-size:11.5px; font-weight:600; cursor:pointer; }
+  #quality-menu { position:absolute; bottom:92px; right:12px; z-index:12; display:none;
+                  background:rgba(28,28,30,.97); border-radius:12px; padding:6px 0;
+                  min-width:118px; max-height:55vh; overflow-y:auto; box-shadow:0 6px 22px rgba(0,0,0,.6); }
+  #quality-menu div { padding:10px 18px; font-size:12.5px; cursor:pointer; white-space:nowrap; }
+  #quality-menu div.sel { color:var(--yt-red); font-weight:700; }
+  #quality-badge { position:absolute; bottom:58px; left:12px; z-index:11; display:none;
+                   background:rgba(0,0,0,.65); padding:4px 10px; border-radius:4px; font-size:11px; pointer-events:none; }
 </style>
-<!-- helboy: bundled locally (assets/helboy_player). Loading these from jsdelivr/plyr.io made the
-     page render a black screen whenever those CDNs are unreachable, i.e. on exactly the networks
-     this player is meant to work on. -->
+<!-- helboy: bundled locally. Loading Plyr/hls.js from a CDN rendered a black screen exactly on the
+     filtered networks this player exists for. -->
 <link rel="stylesheet" href="plyr.css">
 <script src="plyr.min.js"></script>
 <script src="hls.min.js"></script>
 </head>
 <body>
-<div id="player"><video id="video" playsinline></video></div>
-<div id="overlay"><div id="ch-name"></div><div id="ch-info"></div></div>
-<div id="buffering"><div class="spinner"></div><div style="font-size:13px;opacity:.7">Buffering...</div></div>
+
+<div id="stage"><div id="player"><video id="video" playsinline></video></div></div>
+
+<div id="topbar">
+  <div id="avatar"></div>
+  <div id="meta">
+    <div id="ch-name">Helboy TV</div>
+    <div id="ch-info"></div>
+  </div>
+  <button class="hbtn" id="fav-btn" title="Favorite">★</button>
+  <button class="hbtn" id="cast-btn" title="Open in native player">⇱</button>
+</div>
+
+<div id="live">LIVE</div>
+
+<div id="buffering"><div class="spinner"></div><div class="txt">Connecting…</div></div>
 <div id="quality-badge"></div>
-<button id="quality-btn">Quality</button>
+<button id="quality-btn">Auto</button>
 <div id="quality-menu"></div>
+
 <div id="error-overlay">
   <div class="icon">📡</div>
   <div class="msg" id="error-msg">Connection lost. Check your internet.</div>
-  <button id="retry-btn">⟳ Retry</button>
+  <div class="actions">
+    <button id="retry-btn">⟳ Retry</button>
+    <button id="native-btn">Native player</button>
+  </div>
 </div>
+
 <script>
 (function(){
-  const video = document.getElementById('video');
-  const chNameEl = document.getElementById('ch-name');
-  const chInfoEl = document.getElementById('ch-info');
+  const video       = document.getElementById('video');
+  const chNameEl    = document.getElementById('ch-name');
+  const chInfoEl    = document.getElementById('ch-info');
+  const avatarEl    = document.getElementById('avatar');
   const bufferingEl = document.getElementById('buffering');
-  const errorOverlay = document.getElementById('error-overlay');
-  const errorMsg = document.getElementById('error-msg');
-  const retryBtn = document.getElementById('retry-btn');
-  const qualityBadge = document.getElementById('quality-badge');
-  const qualityBtn = document.getElementById('quality-btn');
+  const bufTxtEl    = bufferingEl.querySelector('.txt');
+  const errorOverlay= document.getElementById('error-overlay');
+  const errorMsg    = document.getElementById('error-msg');
+  const retryBtn    = document.getElementById('retry-btn');
+  const nativeBtn   = document.getElementById('native-btn');
+  const qualityBadge= document.getElementById('quality-badge');
+  const qualityBtn  = document.getElementById('quality-btn');
   const qualityMenu = document.getElementById('quality-menu');
+  const topbar      = document.getElementById('topbar');
+  const liveEl      = document.getElementById('live');
+  const favBtn      = document.getElementById('fav-btn');
+  const castBtn     = document.getElementById('cast-btn');
 
-  let hls = null;
-  let player = null;
-  let autoRetries = 0;
-  let currentLevel = -1;          // -1 = auto
-  let playbackStarted = false;
-  let retryTimer = null;
-
+  let hls = null, player = null;
+  let autoRetries = 0, currentLevel = -1, playbackStarted = false, retryTimer = null;
+  let lastBytes = 0, lastRxAt = Date.now(), speedMbps = 0;
   const MAX_AUTO_RETRIES = 12;
 
-  // ---- params ----
+  // ---- params (hash + query) ----
   const hash = location.hash.slice(1);
   const params = new URLSearchParams(hash.replace(/#/g,'&') + '&' + location.search.slice(1));
-  let streamUrl = params.get('u') || '';
-  let youtubeId = params.get('y') || null;
+  let streamUrl   = params.get('u') || '';
+  let youtubeId   = params.get('y') || null;
   let channelName = params.get('n') || 'Helboy TV';
+  let channelLogo = params.get('l') || '';
+  let channelFav  = params.get('f') === '1';
 
   if (!streamUrl) {
     try {
       const h = decodeURIComponent(hash);
-      const m1 = h.match(/u=([^&]+)/);
-      const m2 = h.match(/n=([^&]+)/);
+      const m1 = h.match(/u=([^&]+)/); const m2 = h.match(/n=([^&]+)/);
+      const m3 = h.match(/l=([^&]+)/);
       if (m1) streamUrl = decodeURIComponent(m1[1]);
       if (m2) channelName = decodeURIComponent(m2[1]);
-    } catch(e) {}
-  }
-  if (!streamUrl && youtubeId) {
-    try {
-      const h = decodeURIComponent(hash);
-      const m = h.match(/y=([^&]+)/);
-      if (m) youtubeId = decodeURIComponent(m[1]);
+      if (m3) channelLogo = decodeURIComponent(m3[1]);
     } catch(e) {}
   }
 
   chNameEl.textContent = channelName;
-
-  if (youtubeId) {
-    chInfoEl.textContent = 'YouTube';
-    document.getElementById('player').innerHTML =
-      '<iframe src="https://www.youtube.com/embed/' + youtubeId +
-      '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
-      'allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>';
-    return;
+  if (channelLogo) {
+    const img = document.createElement('img');
+    img.src = channelLogo;
+    img.onerror = function(){ this.remove(); avatarEl.textContent = initials(channelName); };
+    avatarEl.appendChild(img);
+  } else {
+    avatarEl.textContent = initials(channelName);
   }
+  favBtn.classList.toggle('on', channelFav);
 
-  if (!streamUrl) { showError('No stream URL provided.'); return; }
+  function initials(n){
+    return (n || '?').trim().split(/\s+/).slice(0,2).map(function(w){ return w[0] || ''; }).join('').toUpperCase() || '?';
+  }
 
   const isHlsUrl = /\.m3u8(\?|$)/i.test(streamUrl);
 
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorOverlay.classList.add('show');
-    bufferingEl.style.display = 'none';
-  }
-
-  function hideError() {
-    errorOverlay.classList.remove('show');
-  }
-
-  function showBuffering(on) {
+  function showError(msg){ errorMsg.textContent = msg; errorOverlay.classList.add('show'); bufferingEl.style.display='none'; }
+  function hideError(){ errorOverlay.classList.remove('show'); }
+  function showBuffering(on, txt){
+    if (txt) bufTxtEl.textContent = txt;
     bufferingEl.style.display = on ? 'block' : 'none';
   }
+  function setInfo(txt){ chInfoEl.textContent = txt; }
 
-  // helboy: always tear the old pipeline down before building a new one, otherwise the previous
-  // hls.js worker keeps retrying in the background and fights the new one for the same socket.
-  function teardown() {
+  // helboy: always tear the previous pipeline down first — an orphaned hls.js worker keeps
+  // retrying in the background and fights the new one for the same socket.
+  function teardown(){
     if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
-    if (hls) { try { hls.destroy(); } catch(e) {} hls = null; }
-    if (player) { try { player.destroy(); } catch(e) {} player = null; }
-    try { video.removeAttribute('src'); video.load(); } catch(e) {}
-    qualityBtn.style.display = 'none';
-    qualityMenu.style.display = 'none';
+    if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
+    if (player) { try { player.destroy(); } catch(e){} player = null; }
+    try { video.removeAttribute('src'); video.load(); } catch(e){}
+    qualityBtn.style.display='none'; qualityMenu.style.display='none';
   }
 
-  // helboy: single retry path with exponential backoff, capped, and reset once media actually plays.
-  function scheduleRetry(reason) {
-    if (autoRetries >= MAX_AUTO_RETRIES) {
+  function scheduleRetry(reason){
+    if (autoRetries >= MAX_AUTO_RETRIES){
       showError(reason + '\nAutomatic retries exhausted — tap Retry.');
       return;
     }
     const delay = Math.min(2 + autoRetries * 2, 20);
     autoRetries++;
-    showError(reason + ' — retrying in ' + delay + 's (attempt ' + autoRetries + '/' + MAX_AUTO_RETRIES + ')');
+    showError(reason + '\nRetrying in ' + delay + 's (attempt ' + autoRetries + '/' + MAX_AUTO_RETRIES + ')');
     showBuffering(false);
     if (retryTimer) clearTimeout(retryTimer);
     retryTimer = setTimeout(function(){ hideError(); initPlayer(streamUrl); }, delay * 1000);
   }
 
-  function buildQualityMenu() {
-    if (!hls || !hls.levels || hls.levels.length < 2) return;
+  function buildQualityMenu(){
     qualityMenu.innerHTML = '';
-
     const auto = document.createElement('div');
     auto.textContent = 'Auto';
     auto.className = currentLevel === -1 ? 'sel' : '';
-    auto.onclick = function(){ currentLevel = -1; hls.currentLevel = -1; buildQualityMenu(); };
+    auto.onclick = function(){ currentLevel=-1; if(hls) hls.currentLevel=-1; qualityBtn.textContent='Auto'; buildQualityMenu(); qualityMenu.style.display='none'; };
     qualityMenu.appendChild(auto);
-
-    // highest first — that is the order users expect in a quality list
-    const sorted = hls.levels
-      .map(function(l, i){ return { i: i, h: l.height || 0, br: l.bitrate || 0 }; })
-      .sort(function(a, b){ return (b.h - a.h) || (b.br - a.br); });
-
-    sorted.forEach(function(l){
-      const row = document.createElement('div');
-      const label = l.h ? l.h + 'p' : Math.round(l.br / 1000) + ' kbps';
-      row.textContent = label;
-      row.className = currentLevel === l.i ? 'sel' : '';
-      row.onclick = function(){
-        currentLevel = l.i;
-        hls.currentLevel = l.i;
-        buildQualityMenu();
-      };
-      qualityMenu.appendChild(row);
-    });
+    if (!hls || !hls.levels || hls.levels.length < 2) { qualityBtn.style.display = 'none'; return; }
+    hls.levels.map(function(l,i){ return { i:i, h:l.height||0, br:l.bitrate||0 }; })
+      .sort(function(a,b){ return (b.h-a.h) || (b.br-a.br); })
+      .forEach(function(l){
+        const row = document.createElement('div');
+        row.textContent = l.h ? l.h + 'p' : Math.round(l.br/1000) + ' kbps';
+        row.className = currentLevel === l.i ? 'sel' : '';
+        row.onclick = function(){
+          currentLevel = l.i; hls.currentLevel = l.i;
+          qualityBtn.textContent = row.textContent;
+          buildQualityMenu(); qualityMenu.style.display='none';
+        };
+        qualityMenu.appendChild(row);
+      });
+    qualityBtn.style.display = 'block';
   }
 
   qualityBtn.addEventListener('click', function(e){
@@ -191,126 +261,145 @@
     qualityMenu.style.display = qualityMenu.style.display === 'block' ? 'none' : 'block';
   });
 
-  function attachCommonVideoEvents() {
-    video.addEventListener('waiting', function(){ showBuffering(true); });
+  function attachCommonVideoEvents(){
+    video.addEventListener('waiting', function(){ showBuffering(true, 'Buffering…'); });
     video.addEventListener('playing', function(){
-      showBuffering(false);
-      hideError();
-      autoRetries = 0;
-      playbackStarted = true;
+      showBuffering(false); hideError(); autoRetries = 0; playbackStarted = true;
+      liveEl.classList.add('show');
     });
     video.addEventListener('canplay', function(){ showBuffering(false); });
+    // helboy: throughput estimate so the header shows the same "how fast is it" info the list does
+    video.addEventListener('progress', function(){
+      try {
+        if (!video.buffered.length) return;
+        const end = video.buffered.end(video.buffered.length - 1);
+        const now = Date.now();
+        if (now - lastRxAt > 4000 && end > lastBytes) {
+          const mbps = ((end - lastBytes) / ((now - lastRxAt) / 1000));
+          speedMbps = Math.round(mbps * 10) / 10;
+          lastBytes = end; lastRxAt = now;
+          refreshInfoLine();
+        }
+      } catch(e){}
+    });
+    video.addEventListener('error', function(){
+      if (!playbackStarted) scheduleRetry('Playback failed');
+    });
   }
 
-  function initPlayer(url) {
-    teardown();
-    hideError();
-    showBuffering(true);
-    currentLevel = -1;
+  function refreshInfoLine(){
+    const bits = ['Live'];
+    if (speedMbps > 0) bits.push(speedMbps.toFixed(1) + ' MB/s');
+    if (hls && hls.levels && hls.levels.length) {
+      const idx = currentLevel >= 0 ? currentLevel : (hls.currentLevel >= 0 ? hls.currentLevel : hls.loadLevel);
+      const lv = hls.levels[idx];
+      if (lv && lv.height) bits.push(lv.height + 'p');
+    }
+    setInfo(bits.join(' • '));
+  }
 
-    if (isHlsUrl && window.Hls && Hls.isSupported()) {
+  function initPlayer(url){
+    teardown(); hideError(); showBuffering(true, 'Connecting…');
+    currentLevel = -1; speedMbps = 0; lastBytes = 0; lastRxAt = Date.now(); playbackStarted = false;
+    liveEl.classList.remove('show');
+
+    if (isHlsUrl && window.Hls && Hls.isSupported()){
       hls = new Hls({
-        startLevel: -1,
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-        enableWorker: true,
-        lowLatencyMode: true,
-        backBufferLength: 0,
-        manifestLoadingMaxRetry: 4,
-        levelLoadingMaxRetry: 6,
-        fragLoadingMaxRetry: 8,
-        manifestLoadingRetryDelay: 1000,
-        levelLoadingRetryDelay: 1000,
-        fragLoadingRetryDelay: 1000,
+        startLevel:-1, maxBufferLength:30, maxMaxBufferLength:60, enableWorker:true,
+        lowLatencyMode:true, backBufferLength:0,
+        manifestLoadingMaxRetry:4, levelLoadingMaxRetry:6, fragLoadingMaxRetry:8,
+        manifestLoadingRetryDelay:1000, levelLoadingRetryDelay:1000, fragLoadingRetryDelay:1000,
       });
-      hls.loadSource(url);
-      hls.attachMedia(video);
+      hls.loadSource(url); hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, function(e, data){
-        chInfoEl.textContent = 'HLS • ' + data.levels.length + ' quality levels';
-        if (data.levels.length > 1) qualityBtn.style.display = 'block';
+        refreshInfoLine();
         buildQualityMenu();
+        if (data.levels.length > 1) qualityBtn.style.display = 'block';
         video.play().catch(function(){});
       });
-
       hls.on(Hls.Events.LEVEL_SWITCHED, function(e, data){
-        const level = hls.levels[data.level];
-        if (!level) return;
-        const h = level.height || '?';
-        const br = level.bitrate ? Math.round(level.bitrate/1000) + ' kbps' : '';
-        qualityBadge.textContent = (currentLevel === -1 ? 'AUTO ' : '') + h + 'p ' + br;
+        const lv = hls.levels[data.level];
+        if (!lv) return;
+        qualityBadge.textContent = (currentLevel === -1 ? 'AUTO ' : '') + (lv.height || '?') + 'p';
         qualityBadge.style.display = 'block';
-        clearTimeout(qualityBadge._timer);
-        qualityBadge._timer = setTimeout(function(){ qualityBadge.style.display = 'none'; }, 3000);
+        clearTimeout(qualityBadge._t);
+        qualityBadge._t = setTimeout(function(){ qualityBadge.style.display='none'; }, 3000);
+        refreshInfoLine();
       });
-
       hls.on(Hls.Events.ERROR, function(e, data){
         if (!data.fatal) return;
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
-            // hls.js can usually resume a dropped live stream on its own first
-            try { hls.startLoad(); return; } catch(err) {}
-            scheduleRetry('Network error');
-            break;
+            try { hls.startLoad(); return; } catch(err){}
+            scheduleRetry('Network error'); break;
           case Hls.ErrorTypes.MEDIA_ERROR:
-            try { hls.recoverMediaError(); return; } catch(err) {}
-            scheduleRetry('Playback error');
-            break;
-          default:
-            scheduleRetry('Stream error: ' + (data.details || 'unknown'));
-            break;
+            try { hls.recoverMediaError(); return; } catch(err){}
+            scheduleRetry('Playback error'); break;
+          default: scheduleRetry('Stream error: ' + (data.details || 'unknown')); break;
         }
       });
     } else if (isHlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      video.addEventListener('loadedmetadata', function(){ video.play().catch(function(){}); }, { once: true });
+      video.addEventListener('loadedmetadata', function(){ video.play().catch(function(){}); }, { once:true });
     } else if (!isHlsUrl) {
-      // progressive mp4 / webm — hand straight to Plyr, no hls.js involved
-      video.src = url;
-      video.play().catch(function(){});
+      video.src = url; video.play().catch(function(){});
     } else {
-      showError('HLS is not supported on this device.');
-      return;
+      showError('HLS is not supported on this device.'); return;
     }
 
     attachCommonVideoEvents();
 
     player = new Plyr(video, {
-      controls: ['play-large','play','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
-      settings: ['speed'],
-      tooltips: { controls: true, seek: true },
-      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-      keyboard: { focused: true, global: true },
-      invertTime: false,
-      displayDuration: true,
-      ratio: '16:9',
+      controls:['play-large','play','progress','current-time','duration','mute','volume','settings','pip','fullscreen'],
+      settings:['speed','quality'],
+      tooltips:{ controls:true, seek:true },
+      speed:{ selected:1, options:[0.5,0.75,1,1.25,1.5,2] },
+      keyboard:{ focused:true, global:true },
+      invertTime:false, displayDuration:true, ratio:'16:9',
+      hideControls:true, resetOnEnd:false, clickToPlay:true, fullscreen:{ enabled:true, fallback:true },
+      i18n:{ quality:'Quality', speed:'Speed' },
     });
-
-    player.on('error', function(){
-      if (!playbackStarted) scheduleRetry('Playback failed');
-    });
+    player.on('error', function(){ if (!playbackStarted) scheduleRetry('Playback failed'); });
+    player.on('controlshidden', function(){ topbar.classList.add('hidden'); });
+    player.on('controlsshown',  function(){ topbar.classList.remove('hidden'); });
   }
 
-  retryBtn.addEventListener('click', function(){
-    autoRetries = 0;
-    hideError();
-    initPlayer(streamUrl);
+  // ---- YouTube embedding path ----
+  if (youtubeId){
+    document.getElementById('player').innerHTML =
+      '<iframe src="https://www.youtube.com/embed/' + youtubeId +
+      '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
+      'allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>';
+    liveEl.classList.add('show');
+    setInfo('YouTube');
+    return;
+  }
+
+  if (!streamUrl){ showError('No stream URL provided.'); return; }
+
+  retryBtn.addEventListener('click', function(){ autoRetries = 0; hideError(); initPlayer(streamUrl); });
+  nativeBtn.addEventListener('click', function(){
+    // helboy: hop into Telegram's native player — it handles the same URL and keeps its own recovery
+    if (window.HelboyHost && window.HelboyHost.openNative) window.HelboyHost.openNative(streamUrl, channelName);
+  });
+  castBtn.addEventListener('click', function(){ nativeBtn.click(); });
+  document.getElementById('fav-btn').addEventListener('click', function(){
+    channelFav = !channelFav;
+    favBtn.classList.toggle('on', channelFav);
+    if (window.HelboyHost && window.HelboyHost.toggleFavorite) window.HelboyHost.toggleFavorite(channelFav ? '1' : '0');
   });
 
-  // helboy: without this, a dropped stream that never fires 'error' (very common on live HLS around
-  // a network switch) would leave a frozen frame forever.
+  // helboy: a live stream that silently freezes (very common around a network switch) never fires
+  // 'error'; this watchdog catches the frozen-frame case and restarts the pipeline.
   setInterval(function(){
     if (errorOverlay.classList.contains('show') || !playbackStarted) return;
     if (video.paused || video.ended) return;
     if (video.readyState < 3) scheduleRetry('Stream stalled');
   }, 20000);
 
-  const o = document.getElementById('overlay');
-  setTimeout(function(){ o.style.opacity = '0'; }, 3000);
-  document.addEventListener('touchstart', function(){
-    o.style.opacity = '1';
-    clearTimeout(o._timer);
-    o._timer = setTimeout(function(){ o.style.opacity = '0'; }, 3000);
+  document.addEventListener('click', function(e){
+    if (!qualityMenu.contains(e.target) && e.target !== qualityBtn) qualityMenu.style.display = 'none';
   });
 
   if (screen.orientation && screen.orientation.lock) {
