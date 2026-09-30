@@ -230,7 +230,7 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         private val SCAN_BASE = InuUtils.generateId()
         private val NOIZE_BASE = InuUtils.generateId()
         private val IP_BASE = InuUtils.generateId()
-        private val NOIZE_VALUES = arrayOf("none", "light", "balanced", "aggressive")
+        private val NOIZE_VALUES = arrayOf("off", "light", "balanced", "aggressive")
         private val NOIZE_LABELS = intArrayOf(
             R.string.InuTunnelNoizeNone,
             R.string.InuTunnelNoizeLight,

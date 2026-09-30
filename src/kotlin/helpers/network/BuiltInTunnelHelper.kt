@@ -289,7 +289,10 @@ object BuiltInTunnelHelper {
                     scanMode = InuConfig.BUILT_IN_TUNNEL_SCAN.value,
                     ipVersion = when (InuConfig.BUILT_IN_TUNNEL_IP.value) { 1 -> 6; 2 -> 10; else -> 4 },
                     quickReconnect = true,
-                    noizeProfile = InuConfig.BUILT_IN_TUNNEL_NOIZE.value,
+                    noizeProfile = when (val n = InuConfig.BUILT_IN_TUNNEL_NOIZE.value) {
+                        "none" -> "off"
+                        else -> n
+                    },
                     fragmentEnabled = InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value,
                     fragMinSize = 16,
                     fragMaxSize = 32,
