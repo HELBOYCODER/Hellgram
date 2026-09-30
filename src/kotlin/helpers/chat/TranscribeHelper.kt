@@ -111,9 +111,12 @@ object TranscribeHelper {
         notifyStateChange(account, messageObject)
 
         val owner = messageObject.messageOwner
-        val audioFile = FileLoader.getInstance(account).getPathToMessage(owner)
+        // entiny: voice notes land in the CACHE path first and only move to the final attach path
+        // after the download finishes. Checking just getPathToMessage() made every fresh voice note
+        // fail with "Could not download the voice message" while the file was actually there.
+        val audioFile = resolveLocalAudio(account, messageObject)
 
-        if (audioFile != null && audioFile.exists() && audioFile.length() > 0) {
+        if (audioFile != null) {
             processAudioFile(account, messageObject, audioFile)
         } else {
             val doc = messageObject.document
@@ -139,13 +142,41 @@ object TranscribeHelper {
 
         AndroidUtilities.runOnUIThread({
             if (isCancelled(key)) return@runOnUIThread
-            val file = FileLoader.getInstance(account).getPathToAttach(doc, true)
-            if (file != null && file.exists() && file.length() > 0) {
+            val file = resolveLocalAudio(account, messageObject)
+            if (file != null) {
                 processAudioFile(account, messageObject, file)
             } else {
                 pollFileDownload(account, messageObject, doc, attempts + 1)
             }
         }, 500)
+    }
+
+    /**
+     * entiny: find the voice/round-video file wherever Telegram actually put it.
+     * Order matters: the message path covers finished downloads, the cache attach path covers
+     * in-flight downloads (which is where a freshly pressed voice note lives), and the final
+     * attach path covers files whose "final" flag is already set.
+     */
+    private fun resolveLocalAudio(account: Int, messageObject: MessageObject): File? {
+        val loader = FileLoader.getInstance(account)
+        val owner = messageObject.messageOwner
+        val candidates = ArrayList<File?>(3)
+        try {
+            candidates.add(loader.getPathToMessage(owner))
+        } catch (_: Throwable) {
+        }
+        val doc = messageObject.document
+        if (doc != null) {
+            try {
+                candidates.add(loader.getPathToAttach(doc, false)) // cache path (in-flight download)
+            } catch (_: Throwable) {
+            }
+            try {
+                candidates.add(loader.getPathToAttach(doc, true)) // final path
+            } catch (_: Throwable) {
+            }
+        }
+        return candidates.firstOrNull { it != null && it.exists() && it.length() > 0 }
     }
 
     private fun processAudioFile(account: Int, messageObject: MessageObject, file: File) {
