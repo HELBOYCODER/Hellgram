@@ -85,11 +85,21 @@ object BuiltInTunnelHelper {
                 }
                 // entiny: probe the real forwarding path — isPortOpen alone misses the
                 // "listener accepts but forwards nothing" failure.
+                // entiny: FCAE parity — the engine heals itself (state 6 / respawning gateway);
+                // probing during that window double-fails and our old code killed a healthy
+                // self-reconnecting engine with nativeStop(). Only treat probe failure as fatal
+                // when the engine itself is terminal (0/5); while 1..4/6 give it time.
                 if (probeThroughProxy(3500)) {
                     failures = 0
                     // entiny: tunnel healthy again — give the auto-retry budget back so a later
                     // drop still gets its 3 reconnect attempts.
                     if (autoRetries > 0) autoRetries = 0
+                    continue
+                }
+                val engineState = try { NativeEngine.nativeGetState() } catch (_: Throwable) { -1 }
+                if (engineState in 1..4 || engineState == 6) {
+                    Log.i(TAG, "probe missed but engine state $engineState is self-healing; waiting")
+                    failures = 0
                     continue
                 }
                 failures++

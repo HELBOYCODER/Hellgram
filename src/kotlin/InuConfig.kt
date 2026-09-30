@@ -401,7 +401,7 @@ object InuConfig {
     val BUILT_IN_TUNNEL_FRAGMENT = BoolItem("built_in_tunnel_fragment", true)
 
     @JvmField
-    val BUILT_IN_TUNNEL_ECH = BoolItem("built_in_tunnel_ech", true)
+    val BUILT_IN_TUNNEL_ECH = BoolItem("built_in_tunnel_ech", false)
 
     @JvmField
     val BUILT_IN_TUNNEL_H2 = BoolItem("built_in_tunnel_h2", true)
