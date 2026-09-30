@@ -46,6 +46,10 @@ object BuiltInTunnelHelper {
     private var watchdog: Thread? = null
 
     @Volatile private var restarting = false
+    // entiny: generation guard — a start/dial thread must exit as soon as a newer start()
+    // replaces it (settings change mid-dial), otherwise the stale thread reports state of an
+    // engine instance it no longer owns.
+    @Volatile private var startGeneration = 0L
     private var lastNetworkChange = 0L
     private var autoRetries = 0
     private val MAX_AUTO_RETRIES = 3
@@ -270,16 +274,30 @@ object BuiltInTunnelHelper {
 
     @JvmStatic
     fun restartIfNeeded() {
-        if (isActive()) {
-            stopEngine()
-            start()
+        // entiny: FCAE parity — settings must ALWAYS take effect while the user intends the
+        // tunnel to be on. The old gate (isActive()) made every option a no-op while the
+        // engine was still dialing or had failed: taps felt dead and the fix was a manual
+        // disconnect/reconnect. Now: restart immediately when running; when a start attempt
+        // is in flight, stop it and start fresh; when enabled-but-failed, retry with the
+        // new values right away.
+        if (!InuConfig.BUILT_IN_TUNNEL.value) return
+        restarting = true
+        try {
+            if (starting || engineRunning) {
+                stopEngine()
+            }
+        } finally {
+            restarting = false
         }
+        autoRetries = 0
+        start()
     }
 
     private fun start() {
         val context = appContext ?: return
         if (starting || engineRunning) return
         starting = true
+        val myGeneration = ++startGeneration
         proxyPrefBefore = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false)
         Thread {
             if (!NativeEngine.loadLibrary()) {
@@ -351,7 +369,7 @@ object BuiltInTunnelHelper {
                 // engine mid-scan and the retry loop relived the scan forever: stuck "connecting".
                 // Poll until terminal, keep the UI status live.
                 while (true) {
-                    if (!InuConfig.BUILT_IN_TUNNEL.value) {
+                    if (!InuConfig.BUILT_IN_TUNNEL.value || startGeneration != myGeneration) {
                         starting = false
                         stopEngine()
                         return@Thread
