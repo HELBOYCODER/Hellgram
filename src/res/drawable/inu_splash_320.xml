@@ -8,8 +8,8 @@
     </item>
     <item
         android:drawable="@drawable/hellgram_fg"
-        android:top="25%"
-        android:bottom="25%"
-        android:left="25%"
-        android:right="25%"/>
+        android:top="40dp"
+        android:bottom="40dp"
+        android:left="40dp"
+        android:right="40dp"/>
 </layer-list>
