@@ -4,8 +4,8 @@ Date: Wed, 23 Sep 2026 21:17:29 +0300
 Subject: Add censorship bypass tunnel hooks
 
 ---
- .../telegram/tgnet/ConnectionsManager.java    | 22 ++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ .../telegram/tgnet/ConnectionsManager.java    | 31 ++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
 diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 index 0000000..0000000 100644

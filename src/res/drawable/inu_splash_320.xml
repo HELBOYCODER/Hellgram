@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- entiny: Hellgram emblem splash (was the old entiny satellite-dish vector) -->
+<!-- entiny: logo-only splash — NO background layer (user: "فقط لوگو به تنهایی") -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#121318"/>
-        </shape>
-    </item>
     <item
         android:drawable="@drawable/hellgram_fg"
         android:top="40dp"
