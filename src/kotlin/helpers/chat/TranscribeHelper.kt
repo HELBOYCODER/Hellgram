@@ -317,7 +317,10 @@ object TranscribeHelper {
                 }
                 val scroll = android.widget.ScrollView(activity).apply { addView(tv) }
                 org.telegram.ui.ActionBar.AlertDialog.Builder(activity)
-                    .setTitle(LocaleController.getString(R.string.InuAiTranscribeFailed, "…").substringBefore(":").trim())
+                    .setTitle(
+                        LocaleController.formatString(R.string.InuAiTranscribeFailed, "transcription")
+                            .substringBefore(":").trim()
+                    )
                     .setView(scroll)
                     .setPositiveButton(LocaleController.getString(R.string.InuCopyLogs)) { _, _ ->
                         org.telegram.messenger.AndroidUtilities.addToClipboard(body)

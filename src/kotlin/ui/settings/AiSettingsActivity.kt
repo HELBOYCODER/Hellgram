@@ -166,6 +166,7 @@ class AiSettingsActivity : SettingsPageActivity() {
         private val BUTTON_AI_EDITOR = InuUtils.generateId()
         private val TOGGLE_AI_SUMMARY = InuUtils.generateId()
         private val BUTTON_AI_ROLE = InuUtils.generateId()
+        private val BUTTON_ERROR_LOG = InuUtils.generateId()
         private val TOGGLE_AI_STREAM = InuUtils.generateId()
         private val TOGGLE_AI_ONLY_ANSWER = InuUtils.generateId()
         private val TOGGLE_AI_INSERT_QUOTE = InuUtils.generateId()
