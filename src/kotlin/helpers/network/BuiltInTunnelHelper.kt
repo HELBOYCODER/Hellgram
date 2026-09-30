@@ -482,6 +482,8 @@ object BuiltInTunnelHelper {
         engineRunning = false
         lastStatus = error
         Log.e(TAG, "built-in tunnel failed: $error")
+        // entiny: tunnel failures land in the same copyable journal as everything else
+        desu.inugram.helpers.diagnostics.ErrorLog.record("tunnel", error)
         // entiny: a failure right after a network transition is usually transient. Retry with
         // backoff instead of switching the tunnel off for the rest of the session (which is what
         // made the old build look like "reconnect is broken" after wifi<->mobile switches).
