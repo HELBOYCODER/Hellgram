@@ -146,12 +146,18 @@ class InuSettingsActivity : SettingsPageActivity() {
         val ctx = parentActivity ?: return
         val tunnelLogs = BuiltInTunnelHelper.logsText().ifBlank { "— no tunnel logs —" }
         val crashLogs = desu.inugram.helpers.LogsHelper.recentCrashLogs().ifBlank { "— no crash logs —" }
+        // entiny: include the shared Hellgram error journal (transcription, tunnel, ...) — this is
+        // the log that shows WHY things fail, not just that they failed.
+        val errorJournal = desu.inugram.helpers.diagnostics.ErrorLog.text()
         val combined = buildString {
             appendLine("═══ TUNNEL LOGS ═══")
             appendLine(tunnelLogs.takeLast(3000))
             appendLine()
             appendLine("═══ CRASH / ERROR LOGS ═══")
-            appendLine(crashLogs.takeLast(3000))
+            appendLine(crashLogs.takeLast(2000))
+            appendLine()
+            appendLine("═══ ERROR JOURNAL (transcription / tunnel) ═══")
+            appendLine(errorJournal)
         }
         org.telegram.ui.ActionBar.AlertDialog.Builder(ctx, resourceProvider)
             .setTitle(LocaleController.getString(R.string.InuTunnelLogs))
