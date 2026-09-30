@@ -61,12 +61,24 @@ object InuHooks {
             ApkInstaller.dismissInstalledNotification()
         }
         Utilities.globalQueue.postRunnable {
-            CloudSettingsHelper.attachAutoSyncListener()
-            ProxyVpnHelper.init(context)
-            desu.inugram.helpers.diagnostics.ErrorLog.init(context)
-            desu.inugram.helpers.network.BuiltInTunnelHelper.init(context)
-            desu.inugram.helpers.helboy.HelboyStore.warmUp()
-            UrlCleanerHelper.preload()
+            // entiny: each init is independent — one failing helper must never leave the app
+            // half-initialized (symptom: splash never advances).
+            fun safeInit(name: String, block: () -> Unit) {
+                try {
+                    block()
+                } catch (t: Throwable) {
+                    org.telegram.messenger.FileLog.e("init failed: $name", t)
+                    try {
+                        desu.inugram.helpers.diagnostics.ErrorLog.record("init:$name", "", t)
+                    } catch (_: Throwable) {}
+                }
+            }
+            safeInit("cloud-settings") { CloudSettingsHelper.attachAutoSyncListener() }
+            safeInit("proxy-vpn") { ProxyVpnHelper.init(context) }
+            safeInit("error-log") { desu.inugram.helpers.diagnostics.ErrorLog.init(context) }
+            safeInit("tunnel") { desu.inugram.helpers.network.BuiltInTunnelHelper.init(context) }
+            safeInit("helboy-store") { desu.inugram.helpers.helboy.HelboyStore.warmUp() }
+            safeInit("url-cleaner") { UrlCleanerHelper.preload() }
         }
     }
 
