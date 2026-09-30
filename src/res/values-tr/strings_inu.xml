@@ -1606,7 +1606,7 @@
     <string name="InuTunnelQuick">Hızlı yeniden bağlanma</string>
     <string name="InuTunnelQuickInfo">Son çalışan ağ geçidini hatırlar ve önce onu dener</string>
     <string name="InuTunnelLan">LAN paylaşımı</string>
-    <string name="InuTunnelLanInfo">Aynı ağdaki diğer cihazlar tünel proxy'sini kullanabilsin</string>
+    <string name="InuTunnelLanInfo">Aynı ağdaki diğer cihazlar tünel proxy\'sini kullanabilsin</string>
     <string name="InuTunnelSni">Özel SNI</string>
     <string name="InuTunnelPerf">Performans profili</string>
     <string name="InuTunnelPerfAuto">Otomatik</string>
