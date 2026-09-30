@@ -36,10 +36,39 @@ class AiProvidersSettingsActivity : SettingsPageActivity() {
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuAiProvidersUniversalDesc)))
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.InuAiTranscribe)))
-        keyField(items, R.string.InuAiTranscribeLanguage, InuConfig.AI_TRANSCRIBE_LANGUAGE.value, InputType.TYPE_CLASS_TEXT) {
-            InuConfig.AI_TRANSCRIBE_LANGUAGE.value = it.trim()
-        }
+        // entiny: Sokhan-parity language picker. A free-text field let typos silently break
+        // recognition ("گیج می‌زنه"); a fixed radio list keeps the value always well-formed.
+        items.add(
+            UItem.asButton(
+                BUTTON_LANGUAGE,
+                LocaleController.getString(R.string.InuAiTranscribeLanguage),
+                currentLanguageLabel()
+            )
+        )
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuAiTranscribeLanguageInfo)))
+    }
+
+    private fun showLanguagePicker() {
+        val ctx = context ?: return
+        val codes = LANGUAGE_OPTIONS.map { it.first }.toTypedArray()
+        val current = InuConfig.AI_TRANSCRIBE_LANGUAGE.value.trim()
+        val selected = codes.indexOf(current).coerceAtLeast(0)
+        showDialog(
+            RadioDialogBuilder(ctx, resourceProvider)
+                .setTitle(LocaleController.getString(R.string.InuAiTranscribeLanguage))
+                .setItems(LANGUAGE_OPTIONS.map { RadioDialogBuilder.Item(it.second) }, selected) { _, index ->
+                    InuConfig.AI_TRANSCRIBE_LANGUAGE.value = LANGUAGE_OPTIONS[index].first
+                    listView.adapter.update(true)
+                }
+                .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                .create()
+        )
+    }
+
+    private fun currentLanguageLabel(): String {
+        val current = InuConfig.AI_TRANSCRIBE_LANGUAGE.value.trim()
+        return LANGUAGE_OPTIONS.firstOrNull { it.first == current }?.second
+            ?: (current.ifBlank { LANGUAGE_OPTIONS[0].second })
     }
 
     private fun addProviderRow(items: ArrayList<UItem>, meta: ProviderMeta) {
@@ -185,6 +214,8 @@ class AiProvidersSettingsActivity : SettingsPageActivity() {
         }
         when (item.id) {
             BUTTON_FETCH_MODELS -> fetchModels()
+
+            BUTTON_LANGUAGE -> showLanguagePicker()
             BUTTON_FETCH_VOICE_MODELS -> if (expandedProvider == InuConfig.TRANSCRIBE_PROVIDER_CUSTOM) fetchCustomVoiceModels() else fetchNamedVoiceModels()
         }
     }
@@ -342,6 +373,29 @@ class AiProvidersSettingsActivity : SettingsPageActivity() {
         private const val SAME_MODEL_BASE = 26300
         private val BUTTON_FETCH_MODELS = InuUtils.generateId()
         private val BUTTON_FETCH_VOICE_MODELS = InuUtils.generateId()
+        private val BUTTON_LANGUAGE = InuUtils.generateId()
+
+        // (BCP-47 code, display label) — first entry = Auto (follow the app language)
+        private val LANGUAGE_OPTIONS = listOf(
+            "" to "Auto (app language)",
+            "fa-IR" to "فارسی (Iran)",
+            "en-US" to "English (US)",
+            "ar-SA" to "العربية",
+            "tr-TR" to "Türkçe",
+            "ru-RU" to "Русский",
+            "uk-UA" to "Українська",
+            "de-DE" to "Deutsch",
+            "fr-FR" to "Français",
+            "es-ES" to "Español",
+            "it-IT" to "Italiano",
+            "pt-BR" to "Português (BR)",
+            "zh-CN" to "中文",
+            "ja-JP" to "日本語",
+            "ko-KR" to "한국어",
+            "hi-IN" to "हिन्दी",
+            "ur-PK" to "اردو",
+            "ps-AF" to "پښتو",
+        )
 
         private val ALL_PROVIDERS = listOf(
             ProviderMeta(InuConfig.TRANSCRIBE_PROVIDER_SOKHAN, chat = false, voice = true),
