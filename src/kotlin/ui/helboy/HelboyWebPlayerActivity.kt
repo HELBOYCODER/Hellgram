@@ -2,6 +2,7 @@ package desu.inugram.ui.helboy
 
 import android.content.Context
 import android.graphics.Color
+import android.net.Uri
 import android.net.http.SslError
 import android.view.View
 import android.webkit.SslErrorHandler
@@ -80,11 +81,10 @@ class HelboyWebPlayerActivity(
             @android.webkit.JavascriptInterface
             fun openNative(url: String, name: String) {
                 AndroidUtilities.runOnUIThread {
-                    val frag = HelboyWebPlayerActivity(this@HelboyWebPlayerActivity)
                     // reuse playNative: it resolves the stream against the current channel DB entry
                     val ch = HelboyStore.findById(channelId)
                     if (ch != null && ch.hasStreams) {
-                        HelboyPlayer.playNative(frag, ch)
+                        HelboyPlayer.playNative(this@HelboyWebPlayerActivity, ch)
                     } else if (url.isNotBlank()) {
                         fragmentPresentNative(url, name)
                     }
