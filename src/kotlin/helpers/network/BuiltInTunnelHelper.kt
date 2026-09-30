@@ -335,15 +335,19 @@ object BuiltInTunnelHelper {
                     onFailed(NativeEngine.nativeGetLastError().ifBlank { "engine start failed" })
                     return@Thread
                 }
-                val deadline = SystemClock.elapsedRealtime() + 45000
-                while (SystemClock.elapsedRealtime() < deadline) {
+                // entiny: FCAE parity. The upstream app NEVER times out a dial — states 1..4 and 6
+                // are all "still working" and only terminal 0/5 end the session. The engine's own
+                // turbo gateway scan alone has a 45s budget, so our old 45s deadline killed the
+                // engine mid-scan and the retry loop relived the scan forever: stuck "connecting".
+                // Poll until terminal, keep the UI status live.
+                while (true) {
                     if (!InuConfig.BUILT_IN_TUNNEL.value) {
                         starting = false
                         stopEngine()
                         return@Thread
                     }
                     val state = try { NativeEngine.nativeGetState() } catch (_: Throwable) { -1 }
-                    if (state == 5) {
+                    if (state == 0 || state == 5) {
                         val err = NativeEngine.nativeGetLastError().ifBlank { NativeEngine.nativeGetStatusMsg() }
                         onFailed(err.ifBlank { "connection failed" })
                         return@Thread
@@ -377,8 +381,6 @@ object BuiltInTunnelHelper {
                     }
                     Thread.sleep(350)
                 }
-                val tail = try { NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ") } catch (_: Throwable) { "" }
-                onFailed("timeout ($lastStatus) ${tail.take(220)}")
             } catch (e: Throwable) {
                 Log.e(TAG, "tunnel start error", e)
                 onFailed(e.message ?: "error")
