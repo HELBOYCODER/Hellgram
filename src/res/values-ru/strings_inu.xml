@@ -1625,4 +1625,15 @@
     <string name="InuCopyLogsInfo">Copies a full report: connection state, port checks, proxy handshake test, bridge status and the engine log.</string>
     <string name="InuLogsCopied">Logs copied</string>
     <string name="InuTranslationSource">Source language</string>
+    <string name="InuTunnelAdvanced">Дополнительно</string>
+    <string name="InuTunnelQuick">Быстрое переподключение</string>
+    <string name="InuTunnelQuickInfo">Запоминает последний рабочий шлюз и использует его первым</string>
+    <string name="InuTunnelLan">Доступ по LAN</string>
+    <string name="InuTunnelLanInfo">Разрешить другим устройствам сети использовать прокси туннеля</string>
+    <string name="InuTunnelSni">Свой SNI</string>
+    <string name="InuTunnelPerf">Профиль производительности</string>
+    <string name="InuTunnelPerfAuto">Авто</string>
+    <string name="InuTunnelPerfLow">Низкий</string>
+    <string name="InuTunnelPerfMedium">Средний</string>
+    <string name="InuTunnelPerfHigh">Высокий</string>
 </resources>

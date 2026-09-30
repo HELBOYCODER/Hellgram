@@ -313,10 +313,10 @@ object BuiltInTunnelHelper {
                 val ok = NativeEngine.nativeStart(
                     protocol = tunnelProtocol(),
                     mode = 0,
-                    lanSharing = false,
+                    lanSharing = InuConfig.BUILT_IN_TUNNEL_LAN.value,
                     scanMode = InuConfig.BUILT_IN_TUNNEL_SCAN.value,
                     ipVersion = when (InuConfig.BUILT_IN_TUNNEL_IP.value) { 1 -> 6; 2 -> 10; else -> 4 },
-                    quickReconnect = true,
+                    quickReconnect = InuConfig.BUILT_IN_TUNNEL_QUICK.value,
                     noizeProfile = when (val n = InuConfig.BUILT_IN_TUNNEL_NOIZE.value) {
                         "none" -> "off"
                         else -> n
@@ -332,8 +332,8 @@ object BuiltInTunnelHelper {
                     configPath = File(configDir, "aether.toml").absolutePath,
                     h2Enabled = InuConfig.BUILT_IN_TUNNEL_H2.value,
                     echEnabled = InuConfig.BUILT_IN_TUNNEL_ECH.value,
-                    sni = "",
-                    sysProfile = 0,
+                    sni = InuConfig.BUILT_IN_TUNNEL_SNI.value,
+                    sysProfile = InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value.coerceIn(0, 3),
                     teamName = "",
                     accessToken = "",
                     accessEmail = "",

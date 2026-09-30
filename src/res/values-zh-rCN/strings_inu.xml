@@ -1604,4 +1604,15 @@
     <string name="InuCopyLogsInfo">Copies a full report: connection state, port checks, proxy handshake test, bridge status and the engine log.</string>
     <string name="InuLogsCopied">Logs copied</string>
     <string name="InuTranslationSource">Source language</string>
+    <string name="InuTunnelAdvanced">高级</string>
+    <string name="InuTunnelQuick">快速重连</string>
+    <string name="InuTunnelQuickInfo">记住上一个可用网关并优先使用</string>
+    <string name="InuTunnelLan">局域网共享</string>
+    <string name="InuTunnelLanInfo">允许局域网设备使用隧道代理</string>
+    <string name="InuTunnelSni">自定义 SNI</string>
+    <string name="InuTunnelPerf">性能配置</string>
+    <string name="InuTunnelPerfAuto">自动</string>
+    <string name="InuTunnelPerfLow">低</string>
+    <string name="InuTunnelPerfMedium">中</string>
+    <string name="InuTunnelPerfHigh">高</string>
 </resources>

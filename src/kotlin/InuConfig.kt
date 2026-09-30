@@ -416,6 +416,18 @@ object InuConfig {
     val BUILT_IN_TUNNEL_PSIPHON_REGION = StringItem("built_in_tunnel_psiphon_region", "")
 
     @JvmField
+    val BUILT_IN_TUNNEL_QUICK = BoolItem("built_in_tunnel_quick", true)
+
+    @JvmField
+    val BUILT_IN_TUNNEL_LAN = BoolItem("built_in_tunnel_lan", false)
+
+    @JvmField
+    val BUILT_IN_TUNNEL_SNI = StringItem("built_in_tunnel_sni", "")
+
+    @JvmField
+    val BUILT_IN_TUNNEL_SYS_PROFILE = IntItem("built_in_tunnel_sys_profile", 0)
+
+    @JvmField
     val HELBOY_TV = BoolItem("helboy_tv", false)
 
     @JvmField

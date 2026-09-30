@@ -1619,4 +1619,15 @@
     <string name="InuTunnelIpV4">IPv4</string>
     <string name="InuTunnelIpV6">IPv6</string>
     <string name="InuTunnelIpDual">Dual</string>
+    <string name="InuTunnelAdvanced">Advanced</string>
+    <string name="InuTunnelQuick">Quick reconnect</string>
+    <string name="InuTunnelQuickInfo">Remember the last working gateway and reuse it first</string>
+    <string name="InuTunnelLan">LAN sharing</string>
+    <string name="InuTunnelLanInfo">Allow other devices on this network to use the tunnel proxy</string>
+    <string name="InuTunnelSni">Custom SNI</string>
+    <string name="InuTunnelPerf">Performance profile</string>
+    <string name="InuTunnelPerfAuto">Auto</string>
+    <string name="InuTunnelPerfLow">Low</string>
+    <string name="InuTunnelPerfMedium">Medium</string>
+    <string name="InuTunnelPerfHigh">High</string>
 </resources>

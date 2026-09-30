@@ -81,6 +81,16 @@ class TunnelSettingsActivity : SettingsPageActivity() {
                 .also { it.checked = selected })
         }
 
+        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelAdvanced)))
+        items.add(mkTwoLineCheckItem(TOGGLE_QUICK, R.string.InuTunnelQuick, R.string.InuTunnelQuickInfo, InuConfig.BUILT_IN_TUNNEL_QUICK.value))
+        items.add(mkTwoLineCheckItem(TOGGLE_LAN, R.string.InuTunnelLan, R.string.InuTunnelLanInfo, InuConfig.BUILT_IN_TUNNEL_LAN.value))
+        items.add(UItem.asButton(BUTTON_SNI, R.drawable.inu_tabler_server, LocaleController.getString(R.string.InuTunnelSni), if (InuConfig.BUILT_IN_TUNNEL_SNI.value.isEmpty()) "—" else InuConfig.BUILT_IN_TUNNEL_SNI.value))
+        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelPerf)))
+        for ((index, labelRes) in SYS_LABELS.withIndex()) {
+            val selected = InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value == index
+            items.add(UItem.asRadio(SYS_BASE + index, LocaleController.getString(labelRes))
+                .also { it.checked = selected })
+        }
         items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelPeer)))
         val peer = InuConfig.BUILT_IN_TUNNEL_PEER.value
         items.add(UItem.asButton(BUTTON_PEER, R.drawable.inu_tabler_server, LocaleController.getString(R.string.InuTunnelPeerSet), if (peer.isEmpty()) "—" else peer))
@@ -179,6 +189,29 @@ class TunnelSettingsActivity : SettingsPageActivity() {
                     listView?.adapter?.update(true)
                 }
             }
+
+            item.id == TOGGLE_QUICK -> {
+                InuConfig.BUILT_IN_TUNNEL_QUICK.value = InuConfig.BUILT_IN_TUNNEL_QUICK.toggle()
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+
+            item.id == TOGGLE_LAN -> {
+                InuConfig.BUILT_IN_TUNNEL_LAN.value = InuConfig.BUILT_IN_TUNNEL_LAN.toggle()
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+
+            item.id == BUTTON_SNI -> showSniDialog()
+
+            item.id in SYS_BASE until SYS_BASE + SYS_LABELS.size -> {
+                val next = item.id - SYS_BASE
+                if (InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value != next) {
+                    InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value = next
+                    BuiltInTunnelHelper.restartIfNeeded()
+                    listView?.adapter?.update(true)
+                }
+            }
         }
     }
 
@@ -198,6 +231,24 @@ class TunnelSettingsActivity : SettingsPageActivity() {
             }
             .setNeutralButton(LocaleController.getString(R.string.InuTunnelPeerClear)) { _, _ ->
                 InuConfig.BUILT_IN_TUNNEL_PEER.value = ""
+                BuiltInTunnelHelper.restartIfNeeded()
+                listView?.adapter?.update(true)
+            }
+            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+            .show()
+    }
+
+    private fun showSniDialog() {
+        val ctx = parentActivity ?: return
+        val input = EditText(ctx)
+        input.hint = "speed.cloudflare.com"
+        input.setText(InuConfig.BUILT_IN_TUNNEL_SNI.value)
+        input.inputType = InputType.TYPE_CLASS_TEXT
+        AlertDialog.Builder(ctx, resourceProvider)
+            .setTitle(LocaleController.getString(R.string.InuTunnelSni))
+            .setView(input)
+            .setPositiveButton(LocaleController.getString(R.string.InuTunnelPeerSave)) { _, _ ->
+                InuConfig.BUILT_IN_TUNNEL_SNI.value = input.text.toString().trim()
                 BuiltInTunnelHelper.restartIfNeeded()
                 listView?.adapter?.update(true)
             }
@@ -230,6 +281,16 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         private val SCAN_BASE = InuUtils.generateId()
         private val NOIZE_BASE = InuUtils.generateId()
         private val IP_BASE = InuUtils.generateId()
+        private val SYS_BASE = InuUtils.generateId()
+        private val TOGGLE_QUICK = InuUtils.generateId()
+        private val TOGGLE_LAN = InuUtils.generateId()
+        private val BUTTON_SNI = InuUtils.generateId()
+        private val SYS_LABELS = intArrayOf(
+            R.string.InuTunnelPerfAuto,
+            R.string.InuTunnelPerfLow,
+            R.string.InuTunnelPerfMedium,
+            R.string.InuTunnelPerfHigh,
+        )
         private val NOIZE_VALUES = arrayOf("off", "light", "balanced", "aggressive")
         private val NOIZE_LABELS = intArrayOf(
             R.string.InuTunnelNoizeNone,

@@ -1602,4 +1602,15 @@
     <string name="InuCopyLogsInfo">Copies a full report: connection state, port checks, proxy handshake test, bridge status and the engine log.</string>
     <string name="InuLogsCopied">Logs copied</string>
     <string name="InuTranslationSource">Source language</string>
+    <string name="InuTunnelAdvanced">Gelişmiş</string>
+    <string name="InuTunnelQuick">Hızlı yeniden bağlanma</string>
+    <string name="InuTunnelQuickInfo">Son çalışan ağ geçidini hatırlar ve önce onu dener</string>
+    <string name="InuTunnelLan">LAN paylaşımı</string>
+    <string name="InuTunnelLanInfo">Aynı ağdaki diğer cihazlar tünel proxy'sini kullanabilsin</string>
+    <string name="InuTunnelSni">Özel SNI</string>
+    <string name="InuTunnelPerf">Performans profili</string>
+    <string name="InuTunnelPerfAuto">Otomatik</string>
+    <string name="InuTunnelPerfLow">Düşük</string>
+    <string name="InuTunnelPerfMedium">Orta</string>
+    <string name="InuTunnelPerfHigh">Yüksek</string>
 </resources>
