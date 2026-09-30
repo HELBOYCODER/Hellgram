@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="entinyGram Logo" width="108" height="108" />
+  <img src="assets/logo.png" alt="Hellgram Logo" width="128" height="128" />
 </p>
 
-<h1 align="center">entinyGram</h1>
+<h1 align="center">Hellgram</h1>
 
 <p align="center">
-  <strong>A refined, private, and deeply customizable Telegram Android client</strong><br>
+  <strong>Hellboy-pilled Telegram Android — built-in Hell Tunnel, Hellboy TV, free voice-to-text</strong><br>
   Built as an independent StGit patchset on top of official Telegram and Inugram.
 </p>
 
@@ -19,11 +19,11 @@
 
 ---
 
-**entinyGram** is our independent fork of **[Inugram](https://github.com/teidesu/inugram)** and the official **[Telegram Android](https://github.com/DrKLO/Telegram)** codebase. 
+**Hellgram** is our independent fork of **[Inugram](https://github.com/teidesu/inugram)** and the official **[Telegram Android](https://github.com/DrKLO/Telegram)** codebase. 
 
-While Inugram established a clean, modular patchset architecture focused on minimalism, Material 3, and bugfixes, **entinyGram** pushes it further: restoring user privacy (Ghost Mode, anti-deletion), unlocking server-restricted capabilities, providing free AI translation & transcription, and introducing deep visual customization.
+While Inugram established a clean, modular patchset architecture focused on minimalism, Material 3, and bugfixes, **Hellgram** pushes it further: restoring user privacy (Ghost Mode, anti-deletion), unlocking server-restricted capabilities, providing free AI translation & transcription, and introducing deep visual customization.
 
-All features are optional. Toggle them on in `Settings → entinyGram`, or keep them off to stay 100% stock-identical.
+All features are optional. Toggle them on in `Settings → Hellgram`, or keep them off to stay 100% stock-identical.
 
 > **Open Engineering:** This project is developed with AI assistance for research, patch engineering, refactoring, and code review. Every change is tested, maintained, and curated with strict fork isolation and rebase hygiene.
 
@@ -38,7 +38,7 @@ All features are optional. Toggle them on in `Settings → entinyGram`, or keep 
 - **Expiring Media Keeper:** Keep view-once photos, videos, and self-destructing secret chat media permanently saved and playable.
 
 ### 🗑️ Anti-Deletion & Edit Archive
-- **Save Deleted Messages:** Automatically preserve deleted messages and media locally in `Downloads/entinyGram/media/`.
+- **Save Deleted Messages:** Automatically preserve deleted messages and media locally in `Downloads/Hellgram/media/`.
 - **Edit History:** Track every edit with text diffs, original formatting, and media preservation.
 - **Local Archive Search:** Full-text search across saved deleted messages and edit history.
 
@@ -69,7 +69,7 @@ All features are optional. Toggle them on in `Settings → entinyGram`, or keep 
 
 ## 📊 Comparison
 
-| Feature / Philosophy | Official Telegram | Inugram | entinyGram |
+| Feature / Philosophy | Official Telegram | Inugram | Hellgram |
 | :--- | :---: | :---: | :---: |
 | **Architecture** | Monolithic Java/C++ | StGit Patchset | StGit Patchset (`patches/entiny/`) |
 | **Ghost Mode (Stealth)** | ❌ | ❌ | ✅ |
@@ -86,15 +86,15 @@ All features are optional. Toggle them on in `Settings → entinyGram`, or keep 
 
 ## 🏗️ Architecture (The Patchset Way)
 
-Unlike conventional forks that clone millions of lines of stock code into messy commits, entinyGram uses **[StGit](https://stacked-git.github.io/)** patch stacks over clean stock Telegram Android:
+Unlike conventional forks that clone millions of lines of stock code into messy commits, Hellgram uses **[StGit](https://stacked-git.github.io/)** patch stacks over clean stock Telegram Android:
 
 ```text
-entinyGram/
+Hellgram/
 ├── src/
 │   ├── kotlin/        # Fork logic, UI helpers, and InuConfig toggles
 │   └── res/           # Drawables, layouts, and strings (values/strings_inu.xml)
 ├── patches/
-│   ├── entiny/        # entinyGram-owned patches (exclusive features & overrides)
+│   ├── entiny/        # Hellgram-owned patches (exclusive features & overrides)
 │   ├── feature/       # Upstream Inugram features
 │   ├── debloat/       # Upstream Inugram debloat patches
 │   ├── bugfix/        # Stock Telegram bug fixes
@@ -120,8 +120,8 @@ Requirements: **[Bun](https://bun.sh/)**, **Git**, **StGit**, and **JDK 21**.
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/entaytion/entinyGram.git
-   cd entinyGram
+   git clone https://github.com/HELBOYCODER/Hellgram.git
+   cd Hellgram
    ```
 
 2. **Bootstrap the workspace:**
@@ -150,7 +150,7 @@ bun run check-translations # Verify localization completeness
 
 ## 🤝 Acknowledgements & Credits
 
-entinyGram is made possible thanks to the work of the open-source Telegram community:
+Hellgram is made possible thanks to the work of the open-source Telegram community:
 
 - **[Inugram](https://github.com/teidesu/inugram)** by **[@teidesu](https://github.com/teidesu)** — the foundational project, build architecture, and StGit patchset methodology we build upon.
 - **[Telegram Android](https://github.com/DrKLO/Telegram)** — official client codebase.
