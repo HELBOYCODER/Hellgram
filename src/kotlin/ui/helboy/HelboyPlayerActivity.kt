@@ -490,12 +490,13 @@ class HelboyPlayerActivity(
 
     private fun releasePlayer() {
         AndroidUtilities.cancelRunOnUIThread(updateRunnable)
-        try {
-            player?.stop()
-            player?.release()
-        } catch (_: Throwable) {
-        }
+        try { player?.setVideoTextureView(null) } catch (_: Throwable) {}
+        val p = player
         player = null
+        if (p != null) Thread {
+            try { p.stop() } catch (_: Throwable) {}
+            try { p.release() } catch (_: Throwable) {}
+        }.start()
     }
 
     private fun enterPip() {
@@ -533,9 +534,21 @@ class HelboyPlayerActivity(
             parentActivity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } catch (_: Exception) {
         }
-        releasePlayer()
-        trackSelector = null
+        // entiny: detach the surface before releasing — TextureView.release() on the main
+        // thread during fragment teardown blocks on the EGL mutex (measured ANR) and janks
+        // the next screen to white on slower GPUs.
+        try { player?.setVideoTextureView(null) } catch (_: Throwable) {}
+        val p = player
+        player = null
         textureView = null
+        trackSelector = null
         root = null
+        if (p != null) {
+            AndroidUtilities.runOnUIThread({}) // ensure ordering with pending UI runnables
+            Thread {
+                try { p.stop() } catch (_: Throwable) {}
+                try { p.release() } catch (_: Throwable) {}
+            }.start()
+        }
     }
 }

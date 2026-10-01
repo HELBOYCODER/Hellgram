@@ -121,9 +121,16 @@ object BuiltInTunnelHelper {
 
     // entiny: restart without clearing the user's preference — a transient drop must not switch
     // the tunnel off permanently the way onFailed() does for a first-connect failure.
+    @Volatile private var lastRestartAt = 0L
+
     @Synchronized
     private fun restart(reason: String) {
         if (restarting) return
+        // entiny: rate-limit restarts — a flaky link used to bounce the engine every watchdog
+        // cycle (15s), re-firing proxySettingsChanged and flashing every open screen white.
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastRestartAt < 90_000L) return
+        lastRestartAt = now
         restarting = true
         lastStatus = "reconnecting ($reason)"
         postState()
@@ -536,6 +543,15 @@ object BuiltInTunnelHelper {
         AndroidUtilities.runOnUIThread {
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged)
         }
+    }
+
+    // entiny: bounded history so a burst of identical state posts cannot pile up
+    @Volatile private var lastPostedStatus: String? = null
+
+    private fun postStateIfChanged(status: String) {
+        if (status == lastPostedStatus) return
+        lastPostedStatus = status
+        postState()
     }
 
     private fun tunnelProtocol(): Int {

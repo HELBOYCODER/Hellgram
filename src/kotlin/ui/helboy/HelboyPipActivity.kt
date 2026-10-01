@@ -144,12 +144,15 @@ class HelboyPipActivity : Activity() {
     }
 
     private fun stopAndReleasePlayer() {
-        try {
-            player?.stop()
-            player?.release()
-        } catch (_: Throwable) {
-        }
+        // entiny: detach the surface first, then tear the player down off the main thread —
+        // releasing a TextureView-bound player on the UI thread blocks on the EGL mutex.
+        try { player?.setVideoTextureView(null) } catch (_: Throwable) {}
+        val p = player
         player = null
+        if (p != null) Thread {
+            try { p.stop() } catch (_: Throwable) {}
+            try { p.release() } catch (_: Throwable) {}
+        }.start()
     }
 
     private fun expandToMainPlayer() {

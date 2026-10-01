@@ -69,7 +69,11 @@ object HelboyProxyRefresher {
                 val seen = p.getStringSet(KEY_SEEN, HashSet()) ?: HashSet()
                 var added = 0
                 var firstNew: SharedConfig.ProxyInfo? = null
+                // entiny: cap growth — the source pushes ~180 rows and this ran every 20 min,
+                // so unbounded adds bloated SharedConfig and made every list re-render janky.
+                val limit = 60
                 for (line in proxies) {
+                    if (added >= limit) break
                     val info = parseProxy(line) ?: continue
                     if (seen.contains(keyOf(info))) continue
                     SharedConfig.addProxy(info)
