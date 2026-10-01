@@ -11,13 +11,12 @@ import android.os.Build
 import android.os.IBinder
 import desu.inugram.InuConfig
 import org.telegram.messenger.NotificationCenter
-import org.telegram.messenger.NotificationCenterDelegate
 import org.telegram.messenger.R
 import org.telegram.ui.LaunchActivity
 
 // entiny: keeps the tunnel engine alive when Telegram is backgrounded — without a foreground
 // service Android freezes/kills the process minutes after leaving the app and the tunnel drops.
-class TunnelForegroundService : Service(), NotificationCenterDelegate {
+class TunnelForegroundService : Service(), NotificationCenter.NotificationCenterDelegate {
 
     companion object {
         private const val CHANNEL_ID = "inu_tunnel"
@@ -49,7 +48,7 @@ class TunnelForegroundService : Service(), NotificationCenterDelegate {
         postNotification()
     }
 
-    override fun didReceivedNotification(id: Int, account: Int, args: Array<out Any?>) {
+    override fun didReceivedNotification(id: Int, account: Int, args: Any...) {
         if (!InuConfig.BUILT_IN_TUNNEL.value || !BuiltInTunnelHelper.isActive()) stopSelf()
         else postNotification()
     }
