@@ -251,7 +251,7 @@ class HelboyPlayerActivity(
         trackSelector = DefaultTrackSelector(context)
 
         val p = ExoPlayer.Builder(context)
-            .setTrackSelector(trackSelector)
+            .setTrackSelector(trackSelector!!)
             .setLoadControl(loadControl)
             .build()
 
@@ -294,7 +294,7 @@ class HelboyPlayerActivity(
             }
         })
 
-        p.setVideoTextureView(texture)
+        p.setVideoTextureView(textureView!!)
         p.setAudioAttributes(androidx.media3.common.AudioAttributes.Builder()
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
