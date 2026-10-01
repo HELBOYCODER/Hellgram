@@ -12,8 +12,8 @@ class HelboySeekBar(view: android.content.Context) : View(view) {
 
     var onSeek: ((Double) -> Unit)? = null
 
-    private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x55FFFFFF }
-    private val bufPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x88FFFFFF }
+    private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x55FFFFFF.toInt() }
+    private val bufPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x88FFFFFF.toInt() }
     private val playPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFF0033.toInt() }
     private val knobPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFF0033.toInt() }
     private val rect = RectF()
@@ -44,9 +44,9 @@ class HelboySeekBar(view: android.content.Context) : View(view) {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> { dragging = true; parent?.requestDisallowInterceptTouchEvent(true) }
-            MotionEvent.ACTION_MOVE -> fraction = (event.x / width).coerceIn(0.0, 1.0)
+            MotionEvent.ACTION_MOVE -> fraction = ((event.x / width).coerceIn(0f, 1f)).toDouble()
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                fraction = (event.x / width).coerceIn(0.0, 1.0)
+                fraction = ((event.x / width).coerceIn(0f, 1f)).toDouble()
                 onSeek?.invoke(fraction)
                 dragging = false
             }

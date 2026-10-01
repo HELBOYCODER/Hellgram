@@ -1,4 +1,4 @@
-package desu.inugram.helpers.helboy
+package desu.inugram.ui.helboy
 
 import android.content.Context
 import android.content.pm.ActivityInfo
@@ -29,7 +29,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.CaptionStyleCompat
 import desu.inugram.helpers.network.BuiltInTunnelHelper
-import desu.inugram.ui.helboy.HelboySeekBar
 import desu.inugram.helpers.network.TunnelSocketRoute
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.LocaleController
@@ -124,29 +123,29 @@ class HelboyPlayerActivity(
 
         val texture = TextureView(context)
         textureView = texture
-        r.addView(texture, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER))
+        r.addView(texture, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT.toFloat(), LayoutHelper.MATCH_PARENT.toFloat(), Gravity.CENTER))
 
         // live badge + connection readout
         liveBadge = TextView(context).apply {
             text = "LIVE"
             setTextColor(Color.WHITE)
             textSize = 11f
-            typeface = Typeface.DEFAULT_BOLD()
-            setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(2), AndroidUtilities.dp(8), AndroidUtilities.dp(2))
-            background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(4), 0xFFCC0000.toInt())
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(AndroidUtilities.dp(8f), AndroidUtilities.dp(2f), AndroidUtilities.dp(8f), AndroidUtilities.dp(2f))
+            background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(4f), 0xFFCC0000.toInt())
             visibility = View.GONE
         }
-        r.addView(liveBadge, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP or Gravity.END, 0f, 8f, 12f, 0f))
+        r.addView(liveBadge, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT.toFloat(), LayoutHelper.WRAP_CONTENT.toFloat(), Gravity.TOP or Gravity.END, 0f, 8f, 12f, 0f))
 
         qualityBadge = TextView(context).apply {
             setTextColor(Color.WHITE)
             textSize = 11f
-            typeface = Typeface.DEFAULT_BOLD()
-            setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(2), AndroidUtilities.dp(8), AndroidUtilities.dp(2))
-            background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(4), 0x99000000.toInt())
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(AndroidUtilities.dp(8f), AndroidUtilities.dp(2f), AndroidUtilities.dp(8f), AndroidUtilities.dp(2f))
+            background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(4f), 0x99000000.toInt())
             visibility = View.GONE
         }
-        r.addView(qualityBadge, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP or Gravity.START, 12f, 8f, 0f, 0f))
+        r.addView(qualityBadge, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT.toFloat(), LayoutHelper.WRAP_CONTENT.toFloat(), Gravity.TOP or Gravity.START, 12f, 8f, 0f, 0f))
 
         statusText = TextView(context).apply {
             setTextColor(Color.WHITE)
@@ -154,7 +153,7 @@ class HelboyPlayerActivity(
             gravity = Gravity.CENTER
             visibility = View.GONE
         }
-        r.addView(statusText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER))
+        r.addView(statusText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT.toFloat(), LayoutHelper.WRAP_CONTENT.toFloat(), Gravity.CENTER))
 
         progress = ProgressBar(context)
         r.addView(progress, LayoutHelper.createFrame(44, 44, Gravity.CENTER))
@@ -163,10 +162,10 @@ class HelboyPlayerActivity(
         val bar = LinearLayout(context)
         bar.orientation = LinearLayout.HORIZONTAL
         bar.gravity = Gravity.CENTER_VERTICAL
-        bar.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(6), AndroidUtilities.dp(10), AndroidUtilities.dp(6))
-        bar.background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(14), 0xB3000000.toInt())
+        bar.setPadding(AndroidUtilities.dp(10f), AndroidUtilities.dp(6f), AndroidUtilities.dp(10f), AndroidUtilities.dp(6f))
+        bar.background = org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(14f), 0xB3000000.toInt())
         controlsBar = bar
-        r.addView(bar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 10f, 0f, 10f, 10f))
+        r.addView(bar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT.toFloat(), LayoutHelper.WRAP_CONTENT.toFloat(), Gravity.BOTTOM, 10f, 0f, 10f, 10f))
 
         val iconBtn: (Int, String) -> ImageButton = { res, desc ->
             ImageButton(context).apply {
@@ -206,7 +205,7 @@ class HelboyPlayerActivity(
             text = "1x"
             setTextColor(Color.WHITE)
             textSize = 13f
-            typeface = Typeface.DEFAULT_BOLD()
+            typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setOnClickListener { showSpeedMenu(it) }
         }
@@ -216,7 +215,7 @@ class HelboyPlayerActivity(
             text = LocaleController.getString(R.string.InuHelboyQualityAuto)
             setTextColor(Color.WHITE)
             textSize = 13f
-            typeface = Typeface.DEFAULT_BOLD()
+            typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setOnClickListener { showQualityMenu(it) }
         }
@@ -295,7 +294,7 @@ class HelboyPlayerActivity(
             }
         })
 
-        p.videoTextureView = texture
+        p.setVideoTextureView(texture)
         p.setAudioAttributes(androidx.media3.common.AudioAttributes.Builder()
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
