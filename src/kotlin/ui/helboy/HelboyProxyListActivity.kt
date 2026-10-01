@@ -61,7 +61,7 @@ class HelboyProxyListActivity : BaseFragment() {
         actionBar.setTitle("Fresh Proxies")
         actionBar.setAllowOverlayTitle(true)
         val menu: ActionBarMenu = actionBar.createMenu()
-        menu.addItemWithWidth(MENU_REFRESH, R.drawable.inu_proxy_refresh, AndroidUtilities.dp(54).toFloat())
+        menu.addItemWithWidth(MENU_REFRESH, R.drawable.inu_proxy_refresh, AndroidUtilities.dp(54f))
 
         actionBar.setActionBarMenuOnItemClick(object : ActionBarMenuOnItemClick() {
             override fun onItemClick(id: Int) {
@@ -238,7 +238,7 @@ class HelboyProxyListActivity : BaseFragment() {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite))
-            setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0)
+            setPadding(AndroidUtilities.dp(21f), 0, AndroidUtilities.dp(21f), 0)
             title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText))
             title.textSize = 16f
             title.setSingleLine(true)
@@ -247,7 +247,7 @@ class HelboyProxyListActivity : BaseFragment() {
             check.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4))
             check.textSize = 16f
             addView(check, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT))
-            minimumHeight = AndroidUtilities.dp(50)
+            minimumHeight = AndroidUtilities.dp(50f)
         }
 
         fun bind(text: String, selected: Boolean) {
