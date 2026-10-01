@@ -1646,9 +1646,6 @@
     <string name="InuErrorLogTitle">Журнал ошибок</string>
     <string name="InuErrorLogHasEntries">Записаны ошибки — нажмите для просмотра и копирования</string>
     <string name="InuErrorLogInfo">Полный журнал ошибок Hellgram: расшифровка, туннель и другие сбои с реальными причинами. Нажмите, чтобы скопировать и сообщить.</string>
-    <string name="InuHelboyTv">Hellboy TV</string>
-    <string name="InuHelboyTvInfo">Спутниковые и IPTV-каналы</string>
-    <string name="InuHelboyQualityAuto">Авто качество</string>
     <string name="InuPillStackTunnel">Туннель</string>
     <string name="InuPillStackTunnelOn">Туннель вкл</string>
     <string name="InuPillStackTunnelOff">Туннель выкл</string>

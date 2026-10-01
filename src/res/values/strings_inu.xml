@@ -1640,9 +1640,6 @@
     <string name="InuErrorLogTitle">Error log</string>
     <string name="InuErrorLogHasEntries">errors recorded — tap to view &amp; copy</string>
     <string name="InuErrorLogInfo">Full Hellgram error journal: transcription, tunnel and other failures with real causes. Tap to copy and report.</string>
-    <string name="InuHelboyTv">Hellboy TV</string>
-    <string name="InuHelboyTvInfo">Live satellite &amp; IPTV channels</string>
-    <string name="InuHelboyQualityAuto">Auto quality</string>
     <string name="InuPillStackTunnel">Tunnel</string>
     <string name="InuPillStackTunnelOn">Tunnel on</string>
     <string name="InuPillStackTunnelOff">Tunnel off</string>

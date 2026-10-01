@@ -1623,9 +1623,6 @@
     <string name="InuErrorLogTitle">Hata günlüğü</string>
     <string name="InuErrorLogHasEntries">hata kaydedildi — görmek ve kopyalamak için dokun</string>
     <string name="InuErrorLogInfo">Tam Hellgram hata günlüğü: transkripsiyon, tünel ve diğer arızaların gerçek nedenleri. Kopyalamak için dokun.</string>
-    <string name="InuHelboyTv">Hellboy TV</string>
-    <string name="InuHelboyTvInfo">Uydu ve IPTV kanalları</string>
-    <string name="InuHelboyQualityAuto">Otomatik kalite</string>
     <string name="InuPillStackTunnel">Tünel</string>
     <string name="InuPillStackTunnelOn">Tünel açık</string>
     <string name="InuPillStackTunnelOff">Tünel kapalı</string>
