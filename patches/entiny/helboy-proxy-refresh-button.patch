@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: HELBOYCODER <HELBOYCODER@users.noreply.github.com>
+Date: Thu, 1 Oct 2026 15:22:21 +0800
+Subject: helboy: manual refresh-proxies button in proxy list
+
+---
+ .../java/org/telegram/ui/ProxyListActivity.java    | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+index 0000000..0000000 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+@@ -368,13 +368,27 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+             actionBar.setOccupyStatusBar(false);
+         }
+         actionBar.setAllowOverlayTitle(false);
++        // helboy: manual "refresh proxies" button — pulls fresh proxies from the community list
++        org.telegram.ui.ActionBar.ActionBarMenu helboyMenu = actionBar.createMenu();
++        helboyMenu.addItemWithWidth(2101, R.drawable.inu_proxy_refresh, AndroidUtilities.dp(54), "Refresh proxies");
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(int id) {
+                 if (id == -1) {
+                     finishFragment();
++                } else if (id == 2101) {
++                    AndroidUtilities.runOnUIThread(() -> {
++                        desu.inugram.helpers.network.HelboyProxyRefresher.refreshAsync(getContext(), false);
++                        org.telegram.ui.Components.BulletinFactory.of(ProxyListActivity.this).createSimpleBulletin(R.raw.info, "Refreshing fresh proxies…").show();
++                    });
++                    // give the fetch a moment, then reload the list
++                    AndroidUtilities.runOnUIThread(this::helboyReload, 4000);
+                 }
+             }
++
++            private void helboyReload() {
++                listAdapter.notifyDataSetChanged();
++            }
+         });
+ 
+         listAdapter = new ListAdapter(context);

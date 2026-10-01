@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: HELBOYCODER <HELBOYCODER@users.noreply.github.com>
+Date: Thu, 1 Oct 2026 21:40:04 +0800
+Subject: helboy: merge fetch handler into winning menu listener + updateRows
+
+---
+ .../main/java/org/telegram/ui/ProxyListActivity.java  | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+index 0000000..0000000 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+@@ -376,10 +376,6 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+             public void onItemClick(int id) {
+                 if (id == -1) {
+                     finishFragment();
+-                } else if (id == 2101) {
+-                    // helboy: fetch the 5 newest MTProto proxies straight into this list
+-                    org.telegram.ui.Components.BulletinFactory.of(ProxyListActivity.this).createSimpleBulletin(R.raw.info, getString(R.string.InuProxyFetching)).show();
+-                    helboyFetchNewest();
+                 }
+             }
+         });
+@@ -562,6 +558,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+             @Override
+             public void onItemClick(int id) {
+                 switch (id) {
++                    case 2101:
++                        // helboy: fetch 5 newest MTProto proxies into this list
++                        org.telegram.ui.Components.BulletinFactory.of(ProxyListActivity.this).createSimpleBulletin(R.raw.info, getString(R.string.InuProxyFetching)).show();
++                        helboyFetchNewest();
++                        break;
+                     case -1:
+                         if (selectedItems.isEmpty()) {
+                             finishFragment();
+@@ -1203,7 +1204,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+             }
+             AndroidUtilities.runOnUIThread(() -> {
+                 if (getParentActivity() == null) return;
+-                listAdapter.notifyDataSetChanged();
++                updateRows(true);
+                 org.telegram.ui.Components.BulletinFactory.of(ProxyListActivity.this).createSimpleBulletin(R.raw.info,
+                     result.isEmpty() ? getString(R.string.InuProxyFetchFailed)
+                                      : getString(R.string.InuProxyFetchDone).replace("%d", String.valueOf(result.size()))).show();
