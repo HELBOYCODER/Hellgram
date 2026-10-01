@@ -7,6 +7,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Build
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
@@ -66,6 +67,7 @@ class HelboyPlayerActivity(
     private var topBar: LinearLayout? = null
     private var playBtn: ImageButton? = null
     private var muteBtn: ImageButton? = null
+    private var pipBtn: ImageButton? = null
     private var ccBtn: ImageButton? = null
     private var qualityBtn: TextView? = null
     private var speedBtn: TextView? = null
@@ -183,6 +185,10 @@ class HelboyPlayerActivity(
         muteBtn = iconBtn(R.drawable.phosphor_speaker_high, "mute")
         muteBtn!!.setOnClickListener { toggleMute() }
         bar.addView(muteBtn, LayoutHelper.createLinear(36, 36, Gravity.CENTER_VERTICAL))
+
+        pipBtn = iconBtn(R.drawable.inu_pip, "picture in picture")
+        pipBtn!!.setOnClickListener { enterPip() }
+        bar.addView(pipBtn, LayoutHelper.createLinear(36, 36, Gravity.CENTER_VERTICAL))
 
         seekBar = HelboySeekBar(context)
         seekBar!!.onSeek = { frac -> player?.seekTo((player!!.duration * frac).toLong()) }
@@ -487,6 +493,19 @@ class HelboyPlayerActivity(
         } catch (_: Throwable) {
         }
         player = null
+    }
+
+    private fun enterPip() {
+        val act = parentActivity ?: return
+        if (Build.VERSION.SDK_INT < 26) return
+        performHaptic()
+        try {
+            val params = android.app.PictureInPictureParams.Builder()
+                .setAspectRatio(android.util.Rational(16, 9))
+                .build()
+            act.enterPictureInPictureMode(params)
+        } catch (_: Throwable) {
+        }
     }
 
     override fun onPause() {
