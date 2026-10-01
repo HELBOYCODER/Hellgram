@@ -446,3 +446,4 @@ entiny/helboy-exoplayer-pip-tunnel.patch
 entiny/helboy-tv-row-always-visible.patch
 entiny/helboy-pip-fixes.patch
 entiny/helboy-intro-tunnel-toggle-pip.patch
+entiny/helboy-proxy-refresh-button.patch
