@@ -405,15 +405,18 @@ class HelboyPlayerActivity(
             params.setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
         } else {
             val p = player ?: return
-            var lvl = currentLevel
+            // helboy: map the chosen level index to its real height so quality actually changes
+            var height = -1
+            var idx = 0
             val groups = p.currentTracks.groups.filter { it.type == androidx.media3.common.C.TRACK_TYPE_VIDEO }
-            var count = 0
-            groups.forEach { g -> count += g.mediaTrackGroup.length }
-            if (currentLevel >= count) {
-                params.setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
-            } else {
-                params.setMaxVideoSize(Int.MAX_VALUE, 720)
+            groups.forEach { g ->
+                for (fi in 0 until g.mediaTrackGroup.length) {
+                    if (idx == currentLevel) height = g.getTrackFormat(fi).height
+                    idx++
+                }
             }
+            if (height > 0) params.setMaxVideoSize(Int.MAX_VALUE, height)
+            else params.setMaxVideoSize(Int.MAX_VALUE, Int.MAX_VALUE)
         }
         ts.setParameters(params)
         updateQualityLabel()
