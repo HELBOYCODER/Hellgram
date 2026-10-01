@@ -448,3 +448,4 @@ entiny/helboy-pip-fixes.patch
 entiny/helboy-intro-tunnel-toggle-pip.patch
 entiny/helboy-proxy-refresh-button.patch
 entiny/helboy-fresh-proxy-gui.patch
+entiny/helboy-fetch-newest.patch
