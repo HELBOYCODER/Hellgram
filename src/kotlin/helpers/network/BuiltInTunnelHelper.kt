@@ -429,6 +429,7 @@ object BuiltInTunnelHelper {
 
     private fun stop() {
         stopEngine()
+        appContext?.let { desu.inugram.helpers.network.TunnelForegroundService.refresh(it) }
         desu.inugram.helpers.helboy.HelboyWebViewProxy.clear()
         clearMediaRoute()
         TunnelHttpBridge.stop()
@@ -464,6 +465,7 @@ object BuiltInTunnelHelper {
         starting = false
         lastStatus = status
         autoRetries = 0
+        appContext?.let { desu.inugram.helpers.network.TunnelForegroundService.refresh(it) }
         Log.i(TAG, "built-in tunnel connected: $status")
         // entiny: install off the UI thread — install() probes the port synchronously.
         // The bridge is what media3/WebView can actually use: they only speak HTTP proxies, and
@@ -492,6 +494,7 @@ object BuiltInTunnelHelper {
         starting = false
         engineRunning = false
         lastStatus = error
+        appContext?.let { desu.inugram.helpers.network.TunnelForegroundService.refresh(it) }
         Log.e(TAG, "built-in tunnel failed: $error")
         // entiny: tunnel failures land in the same copyable journal as everything else
         desu.inugram.helpers.diagnostics.ErrorLog.record("tunnel", error)
