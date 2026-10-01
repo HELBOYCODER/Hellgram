@@ -204,6 +204,8 @@ class ProfileMenuConfig(key: String) : MenuOrderConfig<ProfileMenuConfig.Item>(k
         override val iconRes: Int,
     ) : MenuOrderItem {
         INUGRAM("inugram", 99, R.string.InuSettings, R.drawable.icon_settings_inu),
+        HELBOY_TV("helboy_tv", 97, R.string.InuHelboyTv, R.drawable.inu_tabler_device_tv),
+        TUNNEL("tunnel", 96, R.string.InuBuiltInTunnel, R.drawable.inu_tabler_shield_lock),
         ACCOUNT("account", 1, R.string.SettingsAccount, R.drawable.settings_account),
         CHAT("chat", 2, R.string.SettingsChat, R.drawable.settings_chat),
         PRIVACY("privacy", 3, R.string.SettingsPrivacySecurity, R.drawable.settings_privacy),
