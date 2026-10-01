@@ -496,14 +496,13 @@ class HelboyPlayerActivity(
     }
 
     private fun enterPip() {
-        val act = parentActivity ?: return
-        if (Build.VERSION.SDK_INT < 26) return
         performHaptic()
         try {
-            val params = android.app.PictureInPictureParams.Builder()
-                .setAspectRatio(android.util.Rational(16, 9))
-                .build()
-            act.enterPictureInPictureMode(params)
+            desu.inugram.ui.helboy.HelboyPipActivity.launch(parentActivity ?: return, streamUrl, titleText?.toString() ?: "")
+            // hand playback over to the floating window
+            try { player?.stop(); player?.release() } catch (_: Throwable) {}
+            player = null
+            finishFragment()
         } catch (_: Throwable) {
         }
     }
