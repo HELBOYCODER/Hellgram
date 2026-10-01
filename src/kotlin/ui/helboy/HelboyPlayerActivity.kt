@@ -27,7 +27,6 @@ import androidx.media3.common.text.Cue
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.ui.CaptionStyleCompat
 import desu.inugram.helpers.network.BuiltInTunnelHelper
 import desu.inugram.helpers.network.TunnelSocketRoute
 import org.telegram.messenger.AndroidUtilities
