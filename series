@@ -442,3 +442,6 @@ entiny/hide-recent-chats-shortcut.patch
 entiny/theme-switch-recovery.patch
 entiny/light-splash-logo.patch
 entiny/helboy-main-settings.patch
+entiny/helboy-exoplayer-pip-tunnel.patch
+entiny/helboy-tv-row-always-visible.patch
+entiny/helboy-intro-tunnel-toggle-pip.patch
