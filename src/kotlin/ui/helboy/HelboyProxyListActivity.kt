@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.LocaleController
 import org.telegram.messenger.MessagesController
+import org.telegram.messenger.FileLog
 import org.telegram.messenger.NotificationCenter
 import org.telegram.messenger.R
 import org.telegram.messenger.SharedConfig
@@ -121,18 +122,36 @@ class HelboyProxyListActivity : BaseFragment() {
         adapter?.notifyDataSetChanged()
         Thread {
             var fetched: List<String>? = null
-            for (url in SOURCES) {
+
+            // 1) master (may transiently be empty — the source bot sometimes pushes empty commits)
+            fetched = tryFetch(SOURCES[0])
+            // 2) last 5 commits via GitHub API — skips empty "update" commits
+            if (fetched.isNullOrEmpty()) {
                 try {
-                    val conn = URL(url).openConnection() as HttpURLConnection
-                    conn.connectTimeout = 8000
-                    conn.readTimeout = 12000
+                    val conn = URL("https://api.github.com/repos/SoliSpirit/mtproto/commits?per_page=5").openConnection() as HttpURLConnection
+                    conn.connectTimeout = 8000; conn.readTimeout = 12000
                     conn.setRequestProperty("User-Agent", "Helboy/1.0")
-                    val lines = conn.inputStream.bufferedReader().readLines().filter { it.contains("/proxy?") }
-                    if (lines.isNotEmpty()) { fetched = lines; break }
-                } catch (t: Throwable) {
-                    org.telegram.messenger.FileLog.e(t)
-                }
+                    val shas = Regex("\"sha\":\"([0-9a-f]{40})\"").findAll(conn.inputStream.bufferedReader().readText()).map { it.groupValues[1] }.toList()
+                    for (sha in shas) {
+                        fetched = tryFetch("https://raw.githubusercontent.com/SoliSpirit/mtproto/$sha/all_proxies.txt")
+                        if (!fetched.isNullOrEmpty()) break
+                    }
+                } catch (t: Throwable) { FileLog.e(t) }
             }
+            // 3) CDN mirrors (stale but usually populated)
+            if (fetched.isNullOrEmpty()) for (i in 1 until SOURCES.size) {
+                fetched = tryFetch(SOURCES[i])
+                if (!fetched.isNullOrEmpty()) break
+            }
+            // 4) last good local cache
+            val fromCache = fetched.isNullOrEmpty()
+            if (fromCache) {
+                try {
+                    val raw = (parentActivity ?: context)?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.getString(KEY_CACHE, null)
+                    if (!raw.isNullOrBlank()) fetched = raw.split("\n").filter { it.contains("/proxy?") }
+                } catch (t: Throwable) {}
+            }
+
             val result = fetched ?: emptyList()
             AndroidUtilities.runOnUIThread {
                 freshProxies.clear()
@@ -144,11 +163,12 @@ class HelboyProxyListActivity : BaseFragment() {
                     freshProxies.add(Entry(info, line))
                 }
                 statusText = when {
-                    freshProxies.isNotEmpty() -> "${freshProxies.size} fresh proxies — tap to connect"
-                    manual -> "fetch failed — no source reachable"
+                    freshProxies.isNotEmpty() && fromCache && result === fetched && false -> statusText
+                    freshProxies.isNotEmpty() -> "${freshProxies.size} fresh proxies — tap to connect" + if (fromCache) " (offline cache)" else ""
+                    manual -> "fetch failed — check connection (tunnel?)"
                     else -> statusText
                 }
-                if (freshProxies.isNotEmpty()) saveCache(context, result)
+                if (!fromCache && freshProxies.isNotEmpty()) saveCache(context, result)
                 if (manual && freshProxies.isEmpty()) {
                     BulletinFactory.of(this@HelboyProxyListActivity).createSimpleBulletin(R.raw.error, "Fetch failed").show()
                 }
@@ -156,6 +176,20 @@ class HelboyProxyListActivity : BaseFragment() {
                 adapter?.notifyDataSetChanged()
             }
         }.start()
+    }
+
+    private fun tryFetch(url: String): List<String>? {
+        return try {
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.connectTimeout = 8000
+            conn.readTimeout = 12000
+            conn.instanceFollowRedirects = true
+            conn.setRequestProperty("User-Agent", "Helboy/1.0")
+            val lines = conn.inputStream.bufferedReader().readLines().filter { it.contains("/proxy?") }
+            if (lines.size >= 3) lines else null
+        } catch (t: Throwable) {
+            FileLog.e(t); null
+        }
     }
 
     private fun parse(line: String): SharedConfig.ProxyInfo? {
