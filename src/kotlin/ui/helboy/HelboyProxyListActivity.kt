@@ -61,7 +61,7 @@ class HelboyProxyListActivity : BaseFragment() {
         actionBar.setTitle("Fresh Proxies")
         actionBar.setAllowOverlayTitle(true)
         val menu: ActionBarMenu = actionBar.createMenu()
-        menu.addItemWithWidth(MENU_REFRESH, R.drawable.inu_proxy_refresh, AndroidUtilities.dp(54))
+        menu.addItemWithWidth(MENU_REFRESH, R.drawable.inu_proxy_refresh, AndroidUtilities.dp(54).toFloat())
 
         actionBar.setActionBarMenuOnItemClick(object : ActionBarMenuOnItemClick() {
             override fun onItemClick(id: Int) {
@@ -86,7 +86,7 @@ class HelboyProxyListActivity : BaseFragment() {
                 connect(freshProxies[position - 2])
             }
         }
-        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT.toFloat(), Gravity.TOP or Gravity.LEFT))
+        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT.toFloat(), LayoutHelper.MATCH_PARENT.toFloat(), Gravity.TOP or Gravity.LEFT))
 
         val status = TextView(context)
         status.id = View.generateViewId()
