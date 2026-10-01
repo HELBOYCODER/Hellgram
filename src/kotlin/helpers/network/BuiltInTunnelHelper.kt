@@ -496,6 +496,8 @@ object BuiltInTunnelHelper {
         lastStatus = error
         appContext?.let { desu.inugram.helpers.network.TunnelForegroundService.refresh(it) }
         Log.e(TAG, "built-in tunnel failed: $error")
+        // helboy: tunnel is down — pull fresh community proxies so the user can still connect
+        appContext?.let { desu.inugram.helpers.network.HelboyProxyRefresher.onTunnelDown(it) }
         // entiny: tunnel failures land in the same copyable journal as everything else
         desu.inugram.helpers.diagnostics.ErrorLog.record("tunnel", error)
         // entiny: a failure right after a network transition is usually transient. Retry with

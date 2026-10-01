@@ -44,6 +44,7 @@ class HelboyPipActivity : Activity() {
     private var playBtn: ImageButton? = null
     private var closeBtn: ImageButton? = null
     private var expandedToPlayer = false
+    private var lifecyclePaused = true
     private var streamUrl = ""
     private var titleText = ""
 
@@ -183,6 +184,7 @@ class HelboyPipActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        lifecyclePaused = false
         // drop straight into the floating window
         if (Build.VERSION.SDK_INT >= 26 && !isInPictureInPictureMode && !expandedToPlayer) {
             try {
@@ -206,8 +208,14 @@ class HelboyPipActivity : Activity() {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         bar?.visibility = if (isInPictureInPictureMode) View.GONE else bar?.visibility ?: View.GONE
         if (!isInPictureInPictureMode && !isChangingConfigurations && !expandedToPlayer && !isFinishing) {
-            // system expand (double-tap / expand button on older versions): go to main player
-            expandToMainPlayer()
+            // helboy: if pip exited while we are NOT the resumed/visible activity, the window
+            // was DISMISSED (system X) → kill TV completely. Only when the window expands
+            // in-place (still visible, resumed) do we return to the main player.
+            if (lifecyclePaused) {
+                closeEverything()
+            } else {
+                expandToMainPlayer()
+            }
         }
     }
 
@@ -227,6 +235,7 @@ class HelboyPipActivity : Activity() {
     }
 
     override fun onPause() {
+        lifecyclePaused = true
         if (!isInPictureInPictureMode && !expandedToPlayer) player?.pause()
         super.onPause()
     }
