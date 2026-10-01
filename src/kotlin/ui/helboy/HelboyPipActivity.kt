@@ -60,8 +60,8 @@ class HelboyPipActivity : Activity() {
             setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
             setOnClickListener { finishAndRemoveTask() }
         }
-        bar?.addView(playBtn, LinearLayout.LayoutParams(AndroidUtilities.dp(44), AndroidUtilities.dp(44)))
-        bar?.addView(closeBtn, LinearLayout.LayoutParams(AndroidUtilities.dp(44), AndroidUtilities.dp(44)))
+        bar?.addView(playBtn, LinearLayout.LayoutParams(AndroidUtilities.dp(44f), AndroidUtilities.dp(44f)))
+        bar?.addView(closeBtn, LinearLayout.LayoutParams(AndroidUtilities.dp(44f), AndroidUtilities.dp(44f)))
         root.addView(bar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL))
         bar?.visibility = View.GONE
         root.setOnClickListener { bar?.visibility = if (bar?.visibility == View.VISIBLE) View.GONE else View.VISIBLE }
