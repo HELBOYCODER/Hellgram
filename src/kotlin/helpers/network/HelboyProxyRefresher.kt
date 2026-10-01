@@ -124,6 +124,7 @@ object HelboyProxyRefresher {
     }
 
     // supports https://t.me/proxy?... and tg://proxy?... links
+    @JvmStatic
     fun parseProxy(line: String): SharedConfig.ProxyInfo? {
         val cleaned = line.trim()
         val q = cleaned.indexOf('?')

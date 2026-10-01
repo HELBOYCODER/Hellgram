@@ -1585,6 +1585,9 @@
         <string name="InuHelboyOnline">Online</string>
     <string name="InuHelboyOffline">قطع</string>
     <string name="InuHelboyQualityAuto">Auto</string>
+    <string name="InuProxyFetching">Fetching newest proxies…</string>
+    <string name="InuProxyFetchDone">%d newest proxies added — tap one to connect</string>
+    <string name="InuProxyFetchFailed">Fetch failed — check connection</string>
     <string name="InuHelboyQuality">Quality</string>
     <string name="InuHelboySpeed">Speed</string>
     <string name="InuHelboySubtitles">Subtitles</string>
