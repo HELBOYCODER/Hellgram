@@ -19,10 +19,10 @@ import org.telegram.messenger.SharedConfig
 import org.telegram.tgnet.ConnectionsManager
 import org.telegram.ui.ActionBar.ActionBar
 import org.telegram.ui.ActionBar.ActionBarMenu
-import org.telegram.ui.ActionBar.ActionBarMenuOnItemClick
+import org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick
 import org.telegram.ui.ActionBar.BackDrawable
 import org.telegram.ui.ActionBar.BaseFragment
-import org.telegram.ui.ActionBar.BulletinFactory
+import org.telegram.ui.Components.BulletinFactory
 import org.telegram.ui.ActionBar.Theme
 import org.telegram.ui.Cells.HeaderCell
 import org.telegram.ui.Cells.TextSettingsCell
@@ -86,7 +86,7 @@ class HelboyProxyListActivity : BaseFragment() {
                 connect(freshProxies[position - 2])
             }
         }
-        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP or Gravity.LEFT))
+        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT.toFloat(), Gravity.TOP or Gravity.LEFT))
 
         val status = TextView(context)
         status.id = View.generateViewId()
@@ -94,7 +94,7 @@ class HelboyProxyListActivity : BaseFragment() {
         status.textSize = 13f
         status.gravity = Gravity.CENTER
         status.text = statusText
-        frameLayout.addView(status, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 16f, 0f, 16f, 12f))
+        frameLayout.addView(status, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT.toFloat(), LayoutHelper.WRAP_CONTENT.toFloat(), Gravity.BOTTOM, 16f, 0f, 16f, 12f))
         statusView = status
 
         AndroidUtilities.runOnUIThread({ refresh(manual = false) }, 400)
