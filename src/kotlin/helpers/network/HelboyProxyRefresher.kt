@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.os.SystemClock
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.ApplicationLoader
-import org.telegram.messenger.ConnectionsManager
+import org.telegram.tgnet.ConnectionsManager
 import org.telegram.messenger.MessagesController
 import org.telegram.messenger.NotificationCenter
 import org.telegram.messenger.SharedConfig
