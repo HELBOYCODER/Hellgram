@@ -24,7 +24,7 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.Player
-import android.util.RemoteAction
+import android.app.RemoteAction
 import android.graphics.drawable.Icon
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.ui.LaunchActivity
