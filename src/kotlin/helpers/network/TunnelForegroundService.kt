@@ -48,7 +48,7 @@ class TunnelForegroundService : Service(), NotificationCenter.NotificationCenter
         postNotification()
     }
 
-    override fun didReceivedNotification(id: Int, account: Int, args: Any...) {
+    override fun didReceivedNotification(id: Int, account: Int, vararg args: Any?) {
         if (!InuConfig.BUILT_IN_TUNNEL.value || !BuiltInTunnelHelper.isActive()) stopSelf()
         else postNotification()
     }
@@ -63,7 +63,7 @@ class TunnelForegroundService : Service(), NotificationCenter.NotificationCenter
     }
 
     override fun onDestroy() {
-        NotificationCenter.getGlobalInstance().removeObserver(NotificationCenter.proxySettingsChanged)
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxySettingsChanged)
         super.onDestroy()
     }
 
