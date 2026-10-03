@@ -95,10 +95,9 @@ jobs:
           echo 'org.gradle.parallel=true'                                              >> ~/.gradle/gradle.properties
           echo 'org.gradle.jvmargs=-Xmx8192m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
 
-      - name: Build release APK (arm64-v8a)
+      - name: Build release APK (all ABIs)
         working-directory: worktree
         env:
-          ABI_FILTERS: arm64-v8a
           CCACHE_COMPILERCHECK: content
           CCACHE_BASEDIR: ${{ github.workspace }}/worktree
         run: ./gradlew --no-daemon :TMessagesProj_App:assembleRelease
