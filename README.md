@@ -114,6 +114,10 @@ Hellgram/
 ### Downloading the APK
 Pre-built APKs are available on the **[Releases](../../releases)** page.
 
+### Running on macOS
+Hellgram runs on Apple Silicon Macs with every feature unchanged (same APK, on-device
+Android runtime) — see **[MACOS.md](MACOS.md)**.
+
 ### Building from Source
 
 Requirements: **[Bun](https://bun.sh/)**, **Git**, **StGit**, and **JDK 21**.

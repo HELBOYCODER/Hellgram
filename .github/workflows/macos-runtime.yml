@@ -1,0 +1,83 @@
+name: macOS Runtime (Android emulator bundle)
+
+# Re-hosts Google's darwin/arm64 Android runtime as GitHub Release assets for macos/install.command.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 1 * *'
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            system-images;android-34;google_apis;arm64-v8a
+
+      - name: Sanity check binaries
+        run: |
+          "$ANDROID_HOME/platform-tools/adb" version
+          "$ANDROID_HOME/emulator/emulator" -help >/dev/null
+
+      - name: Pack runtime
+        run: |
+          set -euo pipefail
+          cd "$ANDROID_HOME"
+          tar -czf "$RUNNER_TEMP/hellgram-macos-platform-tools.tar.gz" platform-tools
+          tar -czf "$RUNNER_TEMP/hellgram-macos-emulator.tar.gz" emulator
+          tar -czf "$RUNNER_TEMP/hellgram-macos-system-image.tar.gz" system-images
+          ls -la "$RUNNER_TEMP"/hellgram-macos-*.tar.gz
+          for f in "$RUNNER_TEMP"/hellgram-macos-*.tar.gz; do
+            size=$(stat -f%z "$f")
+            [ "$size" -lt 2000000000 ] || { echo "asset exceeds 2 GB: $f ($size)"; exit 1; }
+          done
+
+      - name: Write release notes
+        run: |
+          set -euo pipefail
+          {
+            echo 'Automatic bundle of Google Android runtime for Hellgram on macOS (Apple Silicon).'
+            echo
+            echo '```'
+            cat "$ANDROID_HOME/system-images/android-34/google_apis/arm64-v8a/source.properties"
+            echo
+            "$ANDROID_HOME/platform-tools/adb" version | head -2
+            echo
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --list_installed 2>/dev/null || true
+            echo '```'
+          } > "$RUNNER_TEMP/notes.md"
+
+      - name: Publish to macos-runtime release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create macos-runtime \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Hellgram macOS runtime" \
+            --prerelease \
+            --notes-file "$RUNNER_TEMP/notes.md" 2>/dev/null || true
+          gh release edit macos-runtime \
+            --repo "$GITHUB_REPOSITORY" \
+            --prerelease \
+            --title "Hellgram macOS runtime" \
+            --notes-file "$RUNNER_TEMP/notes.md"
+          gh release upload macos-runtime \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber \
+            "$RUNNER_TEMP"/hellgram-macos-platform-tools.tar.gz \
+            "$RUNNER_TEMP"/hellgram-macos-emulator.tar.gz \
+            "$RUNNER_TEMP"/hellgram-macos-system-image.tar.gz
