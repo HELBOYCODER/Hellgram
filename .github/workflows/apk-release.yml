@@ -98,6 +98,7 @@ jobs:
       - name: Build release APK (all ABIs)
         working-directory: worktree
         env:
+          ABI_FILTERS: all
           CCACHE_COMPILERCHECK: content
           CCACHE_BASEDIR: ${{ github.workspace }}/worktree
         run: ./gradlew --no-daemon :TMessagesProj_App:assembleRelease
