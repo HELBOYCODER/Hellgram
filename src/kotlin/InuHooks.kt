@@ -41,24 +41,38 @@ import org.telegram.ui.LauncherIconController
 object InuHooks {
     @JvmStatic
     fun init(context: Context) {
-        CrashReporter.install()
-        InuConfig.load(context)
-        desu.inugram.helpers.network.CensorshipHelper.init()
-        FontHelper.init(context)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            FontHelper.installGlobal()
+        fun guard(name: String, block: () -> Unit) {
+            try {
+                block()
+            } catch (t: Throwable) {
+                org.telegram.messenger.FileLog.e("init failed: $name", t)
+            }
         }
-        syncDoubleTapDelay()
-        syncAnimationSpeed()
-        syncChatInputRowHeight()
-        desu.inugram.helpers.media.DownloadKeepAliveHelper.startPolling()
+        guard("crash-reporter") { CrashReporter.install() }
+        guard("error-log") { desu.inugram.helpers.diagnostics.ErrorLog.init(context) }
+        InuConfig.load(context)
+        guard("censorship") { desu.inugram.helpers.network.CensorshipHelper.init() }
+        guard("font") {
+            FontHelper.init(context)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                FontHelper.installGlobal()
+            }
+        }
+        guard("double-tap") { syncDoubleTapDelay() }
+        guard("anim-speed") { syncAnimationSpeed() }
+        guard("input-row") { syncChatInputRowHeight() }
+        guard("download-keepalive") { desu.inugram.helpers.media.DownloadKeepAliveHelper.startPolling() }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MonetHelper.registerOverlayChangeReceiver(context)
-            MonetHelper.registerThemeReloadReceiver(context)
+            guard("monet") {
+                MonetHelper.registerOverlayChangeReceiver(context)
+                MonetHelper.registerThemeReloadReceiver(context)
+            }
         }
         Utilities.globalQueue.postRunnable {
-            UpdateHelper.clearPendingIfInstalled()
-            ApkInstaller.dismissInstalledNotification()
+            try {
+                UpdateHelper.clearPendingIfInstalled()
+                ApkInstaller.dismissInstalledNotification()
+            } catch (_: Throwable) {}
         }
         Utilities.globalQueue.postRunnable {
             // entiny: each init is independent — one failing helper must never leave the app
@@ -75,7 +89,6 @@ object InuHooks {
             }
             safeInit("cloud-settings") { CloudSettingsHelper.attachAutoSyncListener() }
             safeInit("proxy-vpn") { ProxyVpnHelper.init(context) }
-            safeInit("error-log") { desu.inugram.helpers.diagnostics.ErrorLog.init(context) }
             safeInit("tunnel") { desu.inugram.helpers.network.BuiltInTunnelHelper.init(context) }
             safeInit("helboy-store") { desu.inugram.helpers.helboy.HelboyStore.warmUp() }
             safeInit("url-cleaner") { UrlCleanerHelper.preload() }

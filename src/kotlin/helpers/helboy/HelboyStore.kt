@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream
 // helboy: bundled Helboy TV channel database loader (asset helboy_data.bin, gzip JSON)
 object HelboyStore {
     private const val TAG = "InuHelboy"
-    private var root: JSONObject? = null
+    @Volatile private var root: JSONObject? = null
 
     @Synchronized
     private fun ensureLoaded(): JSONObject? {

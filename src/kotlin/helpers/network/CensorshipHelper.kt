@@ -55,7 +55,7 @@ object CensorshipHelper {
             InuConfig.ANTICENSOR_WS_PORT.value = t.start(InuConfig.ANTICENSOR_WS_PORT.value)
             tunnel = t
             Log.d(TAG, "ws tunnel on ${WsTunnel.HOST}:${t.port}")
-        } catch (e: IOException) {
+        } catch (e: Throwable) {
             Log.d(TAG, "ws tunnel failed to bind: ${e.message}")
         }
     }
