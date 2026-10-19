@@ -14,6 +14,7 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.Socket
 import java.net.URL
+import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -30,8 +31,10 @@ object V2RayScraper {
     const val ERROR_UNREACHABLE = 3
 
     const val TOP = 5
-    private const val SAMPLE = 240
-    private const val REAL_TEST = 24
+    private const val SAMPLE = 300
+    private const val REAL_TEST = 70
+    private const val PER_ENDPOINT = 2
+    private const val GOOD_ENOUGH = 10
     private const val MAX_BODY = 6 * 1024 * 1024
 
     private class Source(val raw: String, val cdn: String)
@@ -61,6 +64,8 @@ object V2RayScraper {
     @Volatile var stage = STAGE_IDLE
         private set
     @Volatile var error = ERROR_NONE
+        private set
+    @Volatile var report = ""
         private set
 
     @Volatile var connectAfterScan = false
@@ -140,14 +145,17 @@ object V2RayScraper {
     }
 
     private fun scan(context: Context) {
+        report = ""
         if (!XrayEngine.available(context)) {
             error = ERROR_ENGINE
             return
         }
         setStage(STAGE_LISTS)
-        val links = fetchAll()
+        val fetched = fetchAll()
+        val links = fetched.first
         if (links.isEmpty()) {
             error = ERROR_LISTS
+            report = "lists ${fetched.second}/${SOURCES.size}"
             return
         }
         val seen = HashSet<String>()
@@ -156,38 +164,55 @@ object V2RayScraper {
             val server = V2RayLink.parse(line) ?: continue
             if (seen.add(server.key())) parsed.add(server)
         }
-        parsed.shuffle()
-        val sample = parsed.take(SAMPLE)
+
+        // entiny: public lists are full of hundreds of configs behind the same CDN IP; ping each endpoint once
+        // and keep only a few configs per endpoint so the test round is not flooded with clones of one dead front
+        val byEndpoint = parsed.groupBy { "${it.host}:${it.port}" }
+        val endpoints = byEndpoint.keys.shuffled().take(SAMPLE)
 
         setStage(STAGE_PING)
         val pingPool = Executors.newFixedThreadPool(40)
-        val pings = sample.map { server -> pingPool.submit<Int> { tcpPing(server.host, server.port) } }
+        val pings = endpoints.map { ep ->
+            val server = byEndpoint.getValue(ep).first()
+            pingPool.submit<Int> { tcpPing(server.host, server.port) }
+        }
         val pingDeadline = SystemClock.elapsedRealtime() + 25_000
-        sample.forEachIndexed { i, server ->
+        val endpointPing = HashMap<String, Int>()
+        endpoints.forEachIndexed { i, ep ->
             val left = (pingDeadline - SystemClock.elapsedRealtime()).coerceAtLeast(1)
-            server.pingMs = try { pings[i].get(left, TimeUnit.MILLISECONDS) } catch (_: Throwable) { -1 }
+            val ms = try { pings[i].get(left, TimeUnit.MILLISECONDS) } catch (_: Throwable) { -1 }
+            if (ms >= 0) endpointPing[ep] = ms
         }
         pingPool.shutdownNow()
-        val reachable = sample.filter { it.pingMs >= 0 }.sortedBy { it.pingMs }.take(REAL_TEST)
+        val reachable = endpointPing.entries.sortedBy { it.value }.flatMap { (ep, ms) ->
+            byEndpoint.getValue(ep).shuffled().take(PER_ENDPOINT).onEach { it.pingMs = ms }
+        }.take(REAL_TEST)
+        report = "lists ${fetched.second}/${SOURCES.size}, links ${links.size}, parsed ${parsed.size}, " +
+            "endpoints ${endpoints.size}, reachable ${endpointPing.size}, testing ${reachable.size}"
         if (reachable.isEmpty()) {
             error = ERROR_UNREACHABLE
             return
         }
 
         setStage(STAGE_TEST)
-        val testPool = Executors.newFixedThreadPool(4)
-        val tests = reachable.map { server -> testPool.submit<Int> { XrayEngine.realDelay(context, server) } }
+        val testPool = Executors.newFixedThreadPool(6)
+        val completion = ExecutorCompletionService<Pair<V2RayServer, Int>>(testPool)
+        for (server in reachable) completion.submit { server to XrayEngine.realDelay(context, server) }
         val tested = ArrayList<V2RayServer>()
-        val testDeadline = SystemClock.elapsedRealtime() + 120_000
-        reachable.forEachIndexed { i, server ->
-            val left = (testDeadline - SystemClock.elapsedRealtime()).coerceAtLeast(1)
-            val delay = try { tests[i].get(left, TimeUnit.MILLISECONDS) } catch (_: Throwable) { -1 }
-            if (delay > 0) {
-                server.pingMs = delay
-                tested.add(server)
+        val testDeadline = SystemClock.elapsedRealtime() + 110_000
+        var done = 0
+        while (done < reachable.size && tested.size < GOOD_ENOUGH) {
+            val left = testDeadline - SystemClock.elapsedRealtime()
+            if (left <= 0) break
+            val result = (try { completion.poll(left, TimeUnit.MILLISECONDS)?.get() } catch (_: Throwable) { null }) ?: break
+            done++
+            if (result.second > 0) {
+                result.first.pingMs = result.second
+                tested.add(result.first)
             }
         }
         testPool.shutdownNow()
+        report += ", passed ${tested.size}/$done"
         val best = tested.sortedBy { it.pingMs }.take(TOP)
         if (best.isEmpty()) {
             error = ERROR_UNREACHABLE
@@ -210,15 +235,21 @@ object V2RayScraper {
         -1
     }
 
-    private fun fetchAll(): List<String> {
+    private fun fetchAll(): Pair<List<String>, Int> {
         val pool = Executors.newFixedThreadPool(SOURCES.size)
         val jobs = SOURCES.map { source -> pool.submit<List<String>> { fetchSource(source) } }
         val out = ArrayList<String>()
+        var okSources = 0
         for (job in jobs) {
-            try { out.addAll(job.get(60, TimeUnit.SECONDS)) } catch (_: Throwable) {}
+            try {
+                val links = job.get(60, TimeUnit.SECONDS)
+                if (links.isNotEmpty()) okSources++
+                out.addAll(links)
+            } catch (_: Throwable) {
+            }
         }
         pool.shutdownNow()
-        return out
+        return out to okSources
     }
 
     private fun fetchSource(source: Source): List<String> {

@@ -73,11 +73,14 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         else -> ""
     }
 
-    private fun scanInfoText(): CharSequence = when (V2RayScraper.error) {
-        V2RayScraper.ERROR_ENGINE -> LocaleController.getString(R.string.InuTunnelScanFailEngine)
-        V2RayScraper.ERROR_LISTS -> LocaleController.getString(R.string.InuTunnelScanFailLists)
-        V2RayScraper.ERROR_UNREACHABLE -> LocaleController.getString(R.string.InuTunnelScanFailNone)
-        else -> LocaleController.getString(R.string.InuTunnelServersInfo)
+    private fun scanInfoText(): CharSequence {
+        val text = when (V2RayScraper.error) {
+            V2RayScraper.ERROR_ENGINE -> LocaleController.getString(R.string.InuTunnelScanFailEngine)
+            V2RayScraper.ERROR_LISTS -> LocaleController.getString(R.string.InuTunnelScanFailLists)
+            V2RayScraper.ERROR_UNREACHABLE -> LocaleController.getString(R.string.InuTunnelScanFailNone)
+            else -> return LocaleController.getString(R.string.InuTunnelServersInfo)
+        }
+        return if (V2RayScraper.report.isEmpty()) text else text + "\n" + V2RayScraper.report
     }
 
     private fun statusLine(): CharSequence = when {

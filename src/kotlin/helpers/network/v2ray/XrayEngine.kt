@@ -180,9 +180,11 @@ object XrayEngine {
             handle = start(context, server, port, null, quiet = true)
             if (!waitForPort(handle, port, 3000)) return -1
             // entiny: first request pays the cold TLS/REALITY handshake, the second shows the steady ping the user will feel
+            val first = SystemClock.elapsedRealtime()
             if (!httpProbe(port, timeoutMs)) return -1
-            val t0 = SystemClock.elapsedRealtime()
-            if (httpProbe(port, timeoutMs)) (SystemClock.elapsedRealtime() - t0).toInt().coerceAtLeast(1) else -1
+            val firstMs = (SystemClock.elapsedRealtime() - first).toInt().coerceAtLeast(1)
+            val second = SystemClock.elapsedRealtime()
+            if (httpProbe(port, timeoutMs)) (SystemClock.elapsedRealtime() - second).toInt().coerceAtLeast(1) else firstMs
         } catch (_: Throwable) {
             -1
         } finally {

@@ -247,6 +247,7 @@ object BuiltInTunnelHelper {
                 }
             ).append('\n')
         } catch (_: Throwable) {}
+        sb.append("lastScan: ").append(V2RayScraper.report.ifEmpty { "-" }).append(" error=").append(V2RayScraper.error).append('\n')
         sb.append("\n=== engine log ===\n")
         sb.append(logsText().takeLast(6000))
         return sb.toString()
