@@ -9,6 +9,8 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Rational
 import android.view.Gravity
 import android.view.TextureView
@@ -24,6 +26,10 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.Player
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.VideoSize
 import android.app.RemoteAction
 import android.graphics.drawable.Icon
 import org.telegram.messenger.AndroidUtilities
@@ -47,12 +53,16 @@ class HelboyPipActivity : Activity() {
     private var lifecyclePaused = true
     private var streamUrl = ""
     private var titleText = ""
+    private var pipAspect = Rational(16, 9)
+    private var retryAttempts = 0
+    private var retryRunnable: Runnable? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         streamUrl = intent?.getStringExtra(EXTRA_URL) ?: ""
         titleText = intent?.getStringExtra(EXTRA_TITLE) ?: ""
-        if (Build.VERSION.SDK_INT >= 28) {
+        if (Build.VERSION.SDK_INT >= 26) {
             setPictureInPictureParams(buildParams())
         }
         val root = FrameLayout(this)
@@ -83,8 +93,8 @@ class HelboyPipActivity : Activity() {
     }
 
     private fun buildParams(): PictureInPictureParams {
-        val b = PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9))
-        if (Build.VERSION.SDK_INT >= 31) {
+        val b = PictureInPictureParams.Builder().setAspectRatio(pipAspect)
+        if (Build.VERSION.SDK_INT >= 26) {
             // expand action: returns to the full Helboy TV player
             val expandIntent = Intent(this, HelboyPipActivity::class.java).setAction(ACTION_EXPAND)
             val expand = RemoteAction(
@@ -104,9 +114,23 @@ class HelboyPipActivity : Activity() {
     }
 
     private fun startPlayer(url: String) {
+        stopAndReleasePlayer()
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("Mozilla/5.0 (Linux; Android) HelboyTV/2.0")
+            .setConnectTimeoutMs(15_000)
+            .setReadTimeoutMs(20_000)
+            .setAllowCrossProtocolRedirects(true)
         val p = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultHttpDataSource.Factory().setDefaultRequestProperties(mapOf("User-Agent" to "Helboy/1.0"))))
-            .setLoadControl(DefaultLoadControl.Builder().setBufferDurationsMs(15000, 60000, 1500, 3000).build())
+            .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
+            .setLoadControl(DefaultLoadControl.Builder().setBufferDurationsMs(15_000, 60_000, 2_000, 5_000).build())
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                    .build(),
+                true,
+            )
+            .setHandleAudioBecomingNoisy(true)
             .build()
         player = p
         p.setVideoTextureView(textureView)
@@ -115,16 +139,48 @@ class HelboyPipActivity : Activity() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 playBtn?.setImageResource(if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play)
             }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_READY) retryAttempts = 0
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                scheduleRetry()
+            }
+
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                updateAspect(videoSize)
+            }
         })
         val item = MediaItem.Builder().setUri(Uri.parse(url)).build()
         if (url.contains(".m3u8")) {
-            val src = HlsMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(item)
-            p.setMediaSource(src)
+            p.setMediaSource(HlsMediaSource.Factory(httpFactory).setAllowChunklessPreparation(true).createMediaSource(item))
         } else {
             p.setMediaItem(item)
         }
         p.prepare()
         p.playWhenReady = true
+    }
+
+    // entiny: a dropped live stream used to leave the floating window frozen on its last frame forever
+    private fun scheduleRetry() {
+        if (retryRunnable != null || isFinishing || expandedToPlayer) return
+        val delay = longArrayOf(2, 4, 8, 15, 30)[retryAttempts.coerceAtMost(4)] * 1000
+        retryAttempts++
+        val r = Runnable {
+            retryRunnable = null
+            if (!isFinishing && !expandedToPlayer && streamUrl.isNotEmpty()) startPlayer(streamUrl)
+        }
+        retryRunnable = r
+        handler.postDelayed(r, delay)
+    }
+
+    private fun updateAspect(size: VideoSize) {
+        if (Build.VERSION.SDK_INT < 26 || size.width <= 0 || size.height <= 0) return
+        val ratio = size.width * size.pixelWidthHeightRatio / size.height
+        if (ratio < 0.42f || ratio > 2.39f) return
+        pipAspect = Rational((ratio * 1000).toInt(), 1000)
+        try { setPictureInPictureParams(buildParams()) } catch (_: Throwable) {}
     }
 
     private fun togglePlay() {
@@ -144,6 +200,8 @@ class HelboyPipActivity : Activity() {
     }
 
     private fun stopAndReleasePlayer() {
+        retryRunnable?.let { handler.removeCallbacks(it) }
+        retryRunnable = null
         // entiny: detach the surface first, then tear the player down off the main thread —
         // releasing a TextureView-bound player on the UI thread blocks on the EGL mutex.
         try { player?.setVideoTextureView(null) } catch (_: Throwable) {}
@@ -163,12 +221,11 @@ class HelboyPipActivity : Activity() {
         // hand playback back to the main Helboy TV player inside the Telegram task
         AndroidUtilities.runOnUIThread {
             try {
-                val act = LaunchActivity.instance
-                if (act != null) {
-                    act.presentFragment(HelboyPlayerActivity(url, title, ""), false, true)
-                } else {
-                    val i = packageManager.getLaunchIntentForPackage(packageName)
-                    if (i != null) startActivity(i)
+                LaunchActivity.instance?.presentFragment(HelboyPlayerActivity(url, title, ""), false, true)
+                // entiny: the Telegram task sits behind this one; without this the expanded player opens unseen
+                packageManager.getLaunchIntentForPackage(packageName)?.let {
+                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    startActivity(it)
                 }
             } catch (_: Throwable) {
             }
@@ -182,6 +239,15 @@ class HelboyPipActivity : Activity() {
         when (intent?.action) {
             ACTION_EXPAND -> expandToMainPlayer()
             ACTION_CLOSE -> closeEverything()
+            else -> {
+                val url = intent?.getStringExtra(EXTRA_URL).orEmpty()
+                if (url.isNotEmpty() && url != streamUrl) {
+                    streamUrl = url
+                    titleText = intent?.getStringExtra(EXTRA_TITLE).orEmpty()
+                    retryAttempts = 0
+                    startPlayer(url)
+                }
+            }
         }
     }
 

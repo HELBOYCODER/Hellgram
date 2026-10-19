@@ -87,6 +87,11 @@ class HelboyPlayerActivity(
     private var retryPending = false
     private var lastErrorText: String? = null
     private var hideControlsRunnable: Runnable? = null
+    private var userPaused = false
+    private var lastRebuildAt = 0L
+    private var videoW = 0
+    private var videoH = 0
+    private var videoPar = 1f
 
     private val updateRunnable = object : Runnable {
         override fun run() {
@@ -97,8 +102,8 @@ class HelboyPlayerActivity(
 
     private val proxyObserver = NotificationCenter.NotificationCenterDelegate { id, _, _ ->
         if (id != NotificationCenter.proxySettingsChanged) return@NotificationCenterDelegate
-        if (BuiltInTunnelHelper.isActive() && retryAttempts > 0) {
-            retryPending = false
+        val now = SystemClock.elapsedRealtime()
+        if (BuiltInTunnelHelper.isActive() && retryAttempts > 0 && now - lastRebuildAt > 5000) {
             buildPlayer()
         }
     }
@@ -114,6 +119,9 @@ class HelboyPlayerActivity(
     override fun createView(context: android.content.Context): View {
         val r = FrameLayout(context)
         r.setBackgroundColor(Color.BLACK)
+        r.addOnLayoutChangeListener { _, l, t, rr, b, ol, ot, orr, ob ->
+            if (rr - l != orr - ol || b - t != ob - ot) fitTexture(videoW, videoH, videoPar)
+        }
         root = r
         actionBar.setTitle(titleText)
         actionBar.setActionBarMenuOnItemClick(object : ActionBar.ActionBarMenuOnItemClick() {
@@ -191,7 +199,10 @@ class HelboyPlayerActivity(
         bar.addView(pipBtn, LayoutHelper.createLinear(36, 36, Gravity.CENTER_VERTICAL))
 
         seekBar = HelboySeekBar(context)
-        seekBar!!.onSeek = { frac -> player?.seekTo((player!!.duration * frac).toLong()) }
+        seekBar!!.onSeek = { frac ->
+            val p = player
+            if (p != null && p.duration > 0 && p.isCurrentMediaItemSeekable) p.seekTo((p.duration * frac).toLong())
+        }
         bar.addView(seekBar, LayoutHelper.createLinear(0, 26, 1f))
 
         timeText = TextView(context).apply {
@@ -227,13 +238,14 @@ class HelboyPlayerActivity(
         bar.addView(qualityBtn, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER_VERTICAL))
 
         buildPlayer()
-        AndroidUtilities.runOnUIThread(updateRunnable, 500)
         return r
     }
 
     private fun buildPlayer() {
         val context = root?.context ?: return
         retryPending = false
+        lastRebuildAt = SystemClock.elapsedRealtime()
+        if (player != null) releasePlayer()
         showStatus(lastErrorText)
         progress?.visibility = View.VISIBLE
 
@@ -283,6 +295,17 @@ class HelboyPlayerActivity(
                     progress?.visibility = View.VISIBLE
                 }
                 updatePlayIcon()
+                try {
+                    val window = parentActivity?.window
+                    if (window != null) {
+                        if (state == Player.STATE_READY && p.playWhenReady) {
+                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        } else {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        }
+                    }
+                } catch (_: Exception) {
+                }
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -295,7 +318,10 @@ class HelboyPlayerActivity(
             }
 
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
-                fitTexture(videoSize.width, videoSize.height, videoSize.pixelWidthHeightRatio)
+                videoW = videoSize.width
+                videoH = videoSize.height
+                videoPar = videoSize.pixelWidthHeightRatio
+                fitTexture(videoW, videoH, videoPar)
             }
         })
 
@@ -305,10 +331,13 @@ class HelboyPlayerActivity(
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
             .build(), true)
         p.volume = if (muted) 0f else 1f
-        p.playWhenReady = true
+        p.setHandleAudioBecomingNoisy(true)
+        p.playWhenReady = !userPaused
         p.prepare()
         player = p
         updateQualityLabel()
+        AndroidUtilities.cancelRunOnUIThread(updateRunnable)
+        AndroidUtilities.runOnUIThread(updateRunnable, 500)
     }
 
     private fun fitTexture(w: Int, h: Int, par: Float) {
@@ -329,7 +358,13 @@ class HelboyPlayerActivity(
     private fun togglePlayPause() {
         val p = player ?: return
         performHaptic()
-        if (p.isPlaying) p.pause() else p.play()
+        if (p.isPlaying) {
+            userPaused = true
+            p.pause()
+        } else {
+            userPaused = false
+            p.play()
+        }
         updatePlayIcon()
     }
 
@@ -503,9 +538,8 @@ class HelboyPlayerActivity(
         performHaptic()
         try {
             desu.inugram.ui.helboy.HelboyPipActivity.launch(parentActivity ?: return, streamUrl, titleText?.toString() ?: "")
-            // hand playback over to the floating window
-            try { player?.stop(); player?.release() } catch (_: Throwable) {}
-            player = null
+            // hand playback over to the floating window (surface detached, released off the UI thread)
+            releasePlayer()
             finishFragment()
         } catch (_: Throwable) {
         }
@@ -519,7 +553,8 @@ class HelboyPlayerActivity(
 
     override fun onResume() {
         super.onResume()
-        player?.play()
+        if (!userPaused) player?.play()
+        AndroidUtilities.cancelRunOnUIThread(updateRunnable)
         AndroidUtilities.runOnUIThread(updateRunnable, 500)
     }
 
