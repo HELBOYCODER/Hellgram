@@ -7,25 +7,20 @@ import android.net.NetworkCapabilities
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.edit
-import com.fc.fcaevpn.NativeEngine
 import desu.inugram.InuConfig
+import desu.inugram.helpers.network.v2ray.V2RayLink
+import desu.inugram.helpers.network.v2ray.V2RayScraper
+import desu.inugram.helpers.network.v2ray.XrayEngine
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.MessagesController
 import org.telegram.messenger.NotificationCenter
 import org.telegram.tgnet.ConnectionsManager
-import java.io.File
 import java.net.InetSocketAddress
 import java.net.Socket
 
-// entiny: built-in MASQUE/WARP proxy tunnel; local SOCKS5/HTTP on 1819/1820, ported from FCAE VPN (GPLv3)
+// entiny: built-in Xray (V2Ray) tunnel; local SOCKS5/HTTP on 1819/1820, server picked from the scraped fastest list
 object BuiltInTunnelHelper {
     private const val TAG = "InuTunnel"
-
-    const val PROTOCOL_MASQUE = 0
-    const val PROTOCOL_WIREGUARD = 1
-    const val PROTOCOL_GOOL = 2
-    const val PROTOCOL_AUTO = 3
-    const val PROTOCOL_MASQUE_IN_MASQUE = 5
 
     const val SOCKS_PORT = 1819
     const val HTTP_PORT = 1820
@@ -34,6 +29,7 @@ object BuiltInTunnelHelper {
     @Volatile private var starting = false
     @Volatile private var lastStatus = ""
     @Volatile private var proxyPrefBefore = false
+    @Volatile private var handle: XrayEngine.Handle? = null
 
     @Volatile var rttMs = 0
         private set
@@ -57,6 +53,7 @@ object BuiltInTunnelHelper {
     @JvmStatic
     fun init(context: Context) {
         appContext = context.applicationContext
+        XrayEngine.killOrphans()
         initNetworkCallback(context)
         startWatchdog()
         if (InuConfig.BUILT_IN_TUNNEL.value) start()
@@ -89,10 +86,6 @@ object BuiltInTunnelHelper {
                 }
                 // entiny: probe the real forwarding path — isPortOpen alone misses the
                 // "listener accepts but forwards nothing" failure.
-                // entiny: FCAE parity — the engine heals itself (state 6 / respawning gateway);
-                // probing during that window double-fails and our old code killed a healthy
-                // self-reconnecting engine with nativeStop(). Only treat probe failure as fatal
-                // when the engine itself is terminal (0/5); while 1..4/6 give it time.
                 if (probeThroughProxy(3500)) {
                     failures = 0
                     // entiny: tunnel healthy again — give the auto-retry budget back so a later
@@ -100,11 +93,9 @@ object BuiltInTunnelHelper {
                     if (autoRetries > 0) autoRetries = 0
                     continue
                 }
-                val engineState = try { NativeEngine.nativeGetState() } catch (_: Throwable) { -1 }
-                if (engineState in 1..4 || engineState == 6) {
-                    Log.i(TAG, "probe missed but engine state $engineState is self-healing; waiting")
-                    failures = 0
-                    continue
+                if (handle?.alive() != true) {
+                    Log.w(TAG, "xray process is gone")
+                    failures = 2
                 }
                 failures++
                 Log.w(TAG, "tunnel port dead (check $failures)")
@@ -135,7 +126,7 @@ object BuiltInTunnelHelper {
         lastStatus = "reconnecting ($reason)"
         postState()
         try {
-            try { NativeEngine.nativeStop() } catch (_: Throwable) {}
+            stopProcess()
             engineRunning = false
             starting = false
             clearMediaRoute()
@@ -186,28 +177,28 @@ object BuiltInTunnelHelper {
     fun isActive(): Boolean = InuConfig.BUILT_IN_TUNNEL.value && engineRunning && !restarting
 
     @JvmStatic
-    fun isStarting(): Boolean = starting
+    fun isStarting(): Boolean = starting || (V2RayScraper.isScanning() && V2RayScraper.connectAfterScan)
+
+    @JvmStatic
+    fun reportStatus(text: String) {
+        lastStatus = text
+        postState()
+    }
 
     @JvmStatic
     fun statusText(): String = lastStatus
 
-    // entiny: engine state as its own list, used by diagnostics. 4 = the engine reports connected.
+    // entiny: engine state as its own line, used by diagnostics
     @JvmStatic
     fun stateText(): String {
         if (!InuConfig.BUILT_IN_TUNNEL.value) return "off"
         if (engineRunning) return "connected"
         if (starting) return "connecting"
-        return try {
-            when (val s = NativeEngine.nativeGetState()) {
-                1 -> "provisioning"; 2 -> "scanning"; 3 -> "connecting"
-                4 -> "engine-says-connected"; 6 -> "reconnecting"
-                else -> "state $s"
-            }
-        } catch (_: Throwable) { "unknown" }
+        return if (handle?.alive() == true) "engine-up" else "engine-down"
     }
 
     @JvmStatic
-    fun logsText(): String = try { NativeEngine.nativeGetLogs() } catch (_: Throwable) { "" }
+    fun logsText(): String = XrayEngine.logs()
 
     // entiny: "connected but nothing loads" needed sight into the real state, because the engine
     // log alone does not say whether the local port actually forwards. This probes every layer so
@@ -263,25 +254,40 @@ object BuiltInTunnelHelper {
 
     @JvmStatic
     fun setEnabled(enabled: Boolean) {
-        InuConfig.BUILT_IN_TUNNEL.value = enabled
-        if (enabled) start() else stop()
+        if (enabled) connect() else disconnect()
     }
 
     @JvmStatic
-    fun connect() {
+    fun connect(): Boolean {
+        if (V2RayLink.parse(InuConfig.BUILT_IN_TUNNEL_SERVER.value) == null) {
+            val ctx = appContext ?: return false
+            lastStatus = "searching servers"
+            postState()
+            V2RayScraper.scanAsync(ctx, connectBest = true)
+            return true
+        }
         InuConfig.BUILT_IN_TUNNEL.value = true
         start()
+        return true
     }
 
     @JvmStatic
     fun disconnect() {
+        V2RayScraper.cancelConnect()
         InuConfig.BUILT_IN_TUNNEL.value = false
         stop()
     }
 
     @JvmStatic
+    fun selectServer(link: String) {
+        InuConfig.BUILT_IN_TUNNEL_SERVER.value = link
+        InuConfig.BUILT_IN_TUNNEL.value = true
+        restartIfNeeded()
+    }
+
+    @JvmStatic
     fun restartIfNeeded() {
-        // entiny: FCAE parity — settings must ALWAYS take effect while the user intends the
+        // entiny: settings must ALWAYS take effect while the user intends the
         // tunnel to be on. The old gate (isActive()) made every option a no-op while the
         // engine was still dialing or had failed: taps felt dead and the fix was a manual
         // disconnect/reconnect. Now: restart immediately when running; when a start attempt
@@ -303,135 +309,77 @@ object BuiltInTunnelHelper {
     private fun start() {
         val context = appContext ?: return
         if (starting || engineRunning) return
+        val server = V2RayLink.parse(InuConfig.BUILT_IN_TUNNEL_SERVER.value)
+        if (server == null) {
+            lastStatus = "no server selected"
+            postState()
+            return
+        }
         starting = true
         val myGeneration = ++startGeneration
         proxyPrefBefore = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false)
         Thread {
-            if (!NativeEngine.loadLibrary()) {
-                onFailed("native library missing")
+            if (!XrayEngine.available(context)) {
+                onFailed("tunnel engine missing in this build")
                 return@Thread
             }
             try {
                 lastStatus = "starting"
                 postState()
-                val configDir = File(context.filesDir, "tunnel").apply { mkdirs() }
-                try { NativeEngine.nativeStop() } catch (_: Throwable) {}
-                try { NativeEngine.nativeSetNativeLibDir(context.applicationInfo.nativeLibraryDir) } catch (_: Throwable) {}
-                val ok = NativeEngine.nativeStart(
-                    protocol = tunnelProtocol(),
-                    mode = 0,
-                    lanSharing = InuConfig.BUILT_IN_TUNNEL_LAN.value,
-                    scanMode = InuConfig.BUILT_IN_TUNNEL_SCAN.value,
-                    ipVersion = when (InuConfig.BUILT_IN_TUNNEL_IP.value) { 1 -> 6; 2 -> 10; else -> 4 },
-                    quickReconnect = InuConfig.BUILT_IN_TUNNEL_QUICK.value,
-                    noizeProfile = when (val n = InuConfig.BUILT_IN_TUNNEL_NOIZE.value) {
-                        "none" -> "off"
-                        else -> n
-                    },
-                    fragmentEnabled = InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value,
-                    fragMinSize = 16,
-                    fragMaxSize = 32,
-                    fragMinDelay = 2,
-                    fragMaxDelay = 10,
-                    socksPort = SOCKS_PORT,
-                    httpPort = HTTP_PORT,
-                    forcePeer = InuConfig.BUILT_IN_TUNNEL_PEER.value,
-                    configPath = File(configDir, "aether.toml").absolutePath,
-                    h2Enabled = InuConfig.BUILT_IN_TUNNEL_H2.value,
-                    echEnabled = InuConfig.BUILT_IN_TUNNEL_ECH.value,
-                    sni = InuConfig.BUILT_IN_TUNNEL_SNI.value,
-                    sysProfile = InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value.coerceIn(0, 3),
-                    teamName = "",
-                    accessToken = "",
-                    accessEmail = "",
-                    routesFile = "",
-                    routesInline = "",
-                    torMode = 0,
-                    torBridges = 0,
-                    torBridgeLines = "",
-                    engineLog = 3,
-                    backend = InuConfig.BUILT_IN_TUNNEL_BACKEND.value,
-                    torSocksPort = 0,
-                    torHttpPort = 0,
-                    psiphonThroughTunnel = false,
-                    psiphonConfig = """{"FCAETransport":0}""",
-                    psiphonRegion = InuConfig.BUILT_IN_TUNNEL_PSIPHON_REGION.value,
-                    psiphonSocksPort = 0,
-                    psiphonHttpPort = 0,
-                    tunTcpSndbuf = 256000,
-                    tunTcpRcvbuf = 256000,
-                    tunTcpAutoTuning = false,
-                    t2sLog = 0,
-                    tunEngine = 0,
-                    tunMtu = 1500,
-                    tunDnsServers = ""
-                )
-                if (!ok) {
-                    onFailed(NativeEngine.nativeGetLastError().ifBlank { "engine start failed" })
+                stopProcess()
+                val started = XrayEngine.start(context, server, SOCKS_PORT, HTTP_PORT)
+                handle = started
+                peer = server.name
+                val t0 = SystemClock.elapsedRealtime()
+                if (!XrayEngine.waitForPort(started, SOCKS_PORT, 5000)) {
+                    if (startGeneration != myGeneration) return@Thread
+                    val tail = XrayEngine.logs().lines().takeLast(4).joinToString(" | ")
+                    stopProcess()
+                    onFailed("engine did not start $tail".take(240))
                     return@Thread
                 }
-                // entiny: FCAE parity. The upstream app NEVER times out a dial — states 1..4 and 6
-                // are all "still working" and only terminal 0/5 end the session. The engine's own
-                // turbo gateway scan alone has a 45s budget, so our old 45s deadline killed the
-                // engine mid-scan and the retry loop relived the scan forever: stuck "connecting".
-                // Poll until terminal, keep the UI status live.
-                while (true) {
-                    if (!InuConfig.BUILT_IN_TUNNEL.value || startGeneration != myGeneration) {
+                lastStatus = "verifying proxy"
+                postState()
+                val deadline = SystemClock.elapsedRealtime() + 20000
+                var ready = false
+                while (SystemClock.elapsedRealtime() < deadline) {
+                    if (startGeneration != myGeneration) return@Thread
+                    if (!InuConfig.BUILT_IN_TUNNEL.value) {
                         starting = false
                         stopEngine()
                         return@Thread
                     }
-                    val state = try { NativeEngine.nativeGetState() } catch (_: Throwable) { -1 }
-                    if (state == 0 || state == 5) {
-                        val err = NativeEngine.nativeGetLastError().ifBlank { NativeEngine.nativeGetStatusMsg() }
-                        onFailed(err.ifBlank { "connection failed" })
-                        return@Thread
+                    if (!started.alive()) break
+                    if (probeThroughProxy(4000)) {
+                        ready = true
+                        break
                     }
-                    if (state == 4) {
-                        // entiny: THE fix. state==4 is the engine's own opinion and it turns true
-                        // before the listener forwards anything, so the old code advertised
-                        // "connected" while every request through the proxy failed. Require a real
-                        // SOCKS5 CONNECT to succeed before we trust it.
-                        lastStatus = "verifying proxy"
-                        postState()
-                        // helboy: the first data-plane round-trip on a fresh tunnel can be slow
-                        // (WG handshake recovery alone was observed at 5.1s RTT). 20s killed
-                        // engines that had actually validated fine; poll up to 60s and, if the
-                        // engine still believes it is connected at the end, keep the tunnel up
-                        // and let the watchdog decide instead of tearing it down.
-                        if (waitForProxyReady(60000)) {
-                            onConnected("127.0.0.1:$SOCKS_PORT")
-                        } else {
-                            val stillUp = try { NativeEngine.nativeGetState() == 4 } catch (_: Throwable) { false }
-                            if (stillUp) {
-                                Log.w(TAG, "proxy probe timed out but engine reports connected; keeping tunnel up")
-                                onConnected("127.0.0.1:$SOCKS_PORT (unverified)")
-                            } else {
-                                val tail = try {
-                                    NativeEngine.nativeGetLogs().lines().takeLast(6).joinToString(" | ")
-                                } catch (_: Throwable) { "" }
-                                onFailed("port not forwarding $tail".take(240))
-                            }
-                        }
-                        return@Thread
-                    }
-                    val stateName = when (state) {
-                        1 -> "provisioning"; 2 -> "scanning"; 3 -> "connecting"; 6 -> "reconnecting"
-                        else -> "state $state"
-                    }
-                    val msg = try { NativeEngine.nativeGetStatusMsg() } catch (_: Throwable) { "" }
-                    val shown = if (msg.isNotBlank()) "$stateName: $msg" else stateName
-                    if (shown != lastStatus) {
-                        lastStatus = shown
-                        postState()
-                    }
-                    Thread.sleep(350)
+                    Thread.sleep(500)
+                }
+                if (startGeneration != myGeneration) return@Thread
+                if (ready) {
+                    rttMs = (SystemClock.elapsedRealtime() - t0).toInt()
+                    onConnected("${server.name} (127.0.0.1:$SOCKS_PORT)")
+                } else {
+                    val tail = XrayEngine.logs().lines().takeLast(4).joinToString(" | ")
+                    stopProcess()
+                    onFailed("server not responding $tail".take(240))
                 }
             } catch (e: Throwable) {
                 Log.e(TAG, "tunnel start error", e)
                 onFailed(e.message ?: "error")
             }
-        }.start()
+        }.apply {
+            name = "inu-tunnel-start"
+            isDaemon = true
+            start()
+        }
+    }
+
+    private fun stopProcess() {
+        val h = handle
+        handle = null
+        try { h?.stop() } catch (_: Throwable) {}
     }
 
     private fun stop() {
@@ -450,7 +398,7 @@ object BuiltInTunnelHelper {
     }
 
     private fun stopEngine() {
-        try { NativeEngine.nativeStop() } catch (_: Throwable) {}
+        stopProcess()
         engineRunning = false
         starting = false
         lastStatus = ""
@@ -554,85 +502,16 @@ object BuiltInTunnelHelper {
         postState()
     }
 
-    private fun tunnelProtocol(): Int {
-        return when (InuConfig.BUILT_IN_TUNNEL_PROTOCOL.value) {
-            1 -> PROTOCOL_WIREGUARD
-            2 -> PROTOCOL_GOOL
-            3 -> PROTOCOL_AUTO
-            4 -> PROTOCOL_MASQUE_IN_MASQUE
-            else -> PROTOCOL_MASQUE
-        }
-    }
-
     // entiny: a TCP connect to the port is NOT proof the tunnel works. The listener can accept
     // and then fail to forward, which is exactly the "shows connected but nothing loads" case.
     // Drive a real SOCKS5 handshake + CONNECT and require the engine to accept it.
     @JvmStatic
     fun probeThroughProxy(timeoutMs: Int = 4000): Boolean {
         if (!isPortOpen(SOCKS_PORT)) return false
-        return try {
-            Socket().use { s ->
-                s.soTimeout = timeoutMs
-                s.connect(InetSocketAddress("127.0.0.1", SOCKS_PORT), timeoutMs)
-                val out = s.getOutputStream()
-                val inp = s.getInputStream()
-                // greeting: version 5, one method, no-auth
-                out.write(byteArrayOf(5, 1, 0)); out.flush()
-                val greet = ByteArray(2)
-                if (inp.read(greet) != 2 || greet[0].toInt() != 5 || greet[1].toInt() != 0) return false
-                // CONNECT 1.1.1.1:443
-                // entiny: 0xBB > Byte.MAX_VALUE, so it must be written as an explicit Byte —
-                // byteArrayOf() cannot coerce an out-of-range int literal and the whole module
-                // failed to compile (this is what broke the release APK build).
-                out.write(byteArrayOf(5, 1, 0, 1, 1, 1, 1, 1, 0x01, 0xBB.toByte())); out.flush()
-                val resp = ByteArray(4)
-                if (inp.read(resp) != 4) return false
-                if (resp[0].toInt() != 5) return false
-                if (resp[1].toInt() != 0) return false // 0x00 = succeeded
-                val rest = when (resp[3].toInt()) {
-                    1 -> 6      // IPv4 + port
-                    4 -> 18     // IPv6 + port
-                    3 -> {      // domain: len byte + name + port
-                        val len = inp.read()
-                        if (len < 0) 0 else len + 2
-                    }
-                    else -> 0
-                }
-                if (rest > 0) {
-                    val sink = ByteArray(rest)
-                    inp.read(sink)
-                }
-                true
-            }
-        } catch (_: Throwable) {
-            false
-        }
-    }
-
-    // entiny: state==4 only means the engine believes it is up; the port may not be forwarding
-    // yet. Poll the real handshake before we point Telegram at the proxy.
-    private fun waitForProxyReady(timeoutMs: Long): Boolean {
-        val deadline = SystemClock.elapsedRealtime() + timeoutMs
-        while (SystemClock.elapsedRealtime() < deadline) {
-            if (!InuConfig.BUILT_IN_TUNNEL.value) return false
-            if (probeThroughProxy()) return true
-            try {
-                Thread.sleep(600)
-            } catch (_: InterruptedException) {
-                return false
-            }
-        }
-        return false
+        return XrayEngine.httpProbe(SOCKS_PORT, timeoutMs)
     }
 
     // entiny: media3/ExoPlayer route through the tunnel needs this probe too
     @JvmStatic
-    fun isPortOpen(port: Int): Boolean {
-        return try {
-            Socket().use { it.connect(InetSocketAddress("127.0.0.1", port), 350) }
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
+    fun isPortOpen(port: Int): Boolean = XrayEngine.isPortOpen(port)
 }

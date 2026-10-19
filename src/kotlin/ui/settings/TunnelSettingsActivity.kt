@@ -1,13 +1,11 @@
 package desu.inugram.ui.settings
 
-import android.text.InputType
 import android.view.View
-import android.widget.EditText
 import desu.inugram.InuConfig
 import desu.inugram.SearchRegistry
 import desu.inugram.helpers.InuUtils
 import desu.inugram.helpers.network.BuiltInTunnelHelper
-import org.telegram.messenger.AndroidUtilities
+import desu.inugram.helpers.network.v2ray.V2RayScraper
 import org.telegram.messenger.LocaleController
 import org.telegram.messenger.NotificationCenter
 import org.telegram.messenger.R
@@ -45,60 +43,41 @@ class TunnelSettingsActivity : SettingsPageActivity() {
         ))
         items.add(UItem.asShadow(statusLine()))
 
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelProtocol)))
-        for ((index, labelRes) in PROTOCOL_LABELS.withIndex()) {
-            val selected = InuConfig.BUILT_IN_TUNNEL_PROTOCOL.value == index
-            items.add(
-                UItem.asRadio(PROTOCOL_BASE + index, LocaleController.getString(labelRes))
-                    .also { it.checked = selected }
+        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelServers)))
+        items.add(UItem.asButton(
+            BUTTON_SCAN,
+            R.drawable.inu_tabler_server,
+            LocaleController.getString(R.string.InuTunnelFindServers),
+            scanStageText(),
+        ))
+        val selected = InuConfig.BUILT_IN_TUNNEL_SERVER.value
+        for ((index, server) in V2RayScraper.servers().take(SERVER_IDS.size).withIndex()) {
+            val label = String.format(
+                LocaleController.getString(R.string.InuTunnelServerRow),
+                server.pingMs,
+                server.name.take(40),
             )
+            items.add(UItem.asRadio(SERVER_IDS[index], label).also { it.checked = server.link == selected })
         }
-
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelScan)))
-        for ((index, labelRes) in SCAN_LABELS.withIndex()) {
-            val selected = InuConfig.BUILT_IN_TUNNEL_SCAN.value == index
-            items.add(
-                UItem.asRadio(SCAN_BASE + index, LocaleController.getString(labelRes))
-                    .also { it.checked = selected }
-            )
-        }
-        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelScanInfo)))
-
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelObfuscation)))
-        items.add(mkTwoLineCheckItem(TOGGLE_FRAGMENT, R.string.InuTunnelFragment, R.string.InuTunnelFragmentInfo, InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value))
-        items.add(mkTwoLineCheckItem(TOGGLE_ECH, R.string.InuTunnelEch, R.string.InuTunnelEchInfo, InuConfig.BUILT_IN_TUNNEL_ECH.value))
-        items.add(mkTwoLineCheckItem(TOGGLE_H2, R.string.InuTunnelH2, R.string.InuTunnelH2Info, InuConfig.BUILT_IN_TUNNEL_H2.value))
-        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelNoize)))
-        for ((index, labelRes) in NOIZE_LABELS.withIndex()) {
-            val selected = InuConfig.BUILT_IN_TUNNEL_NOIZE.value == NOIZE_VALUES[index]
-            items.add(UItem.asRadio(NOIZE_BASE + index, LocaleController.getString(labelRes))
-                .also { it.checked = selected })
-        }
-        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelIp)))
-        for ((index, labelRes) in IP_LABELS.withIndex()) {
-            val selected = InuConfig.BUILT_IN_TUNNEL_IP.value == index
-            items.add(UItem.asRadio(IP_BASE + index, LocaleController.getString(labelRes))
-                .also { it.checked = selected })
-        }
-
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelAdvanced)))
-        items.add(mkTwoLineCheckItem(TOGGLE_QUICK, R.string.InuTunnelQuick, R.string.InuTunnelQuickInfo, InuConfig.BUILT_IN_TUNNEL_QUICK.value))
-        items.add(mkTwoLineCheckItem(TOGGLE_LAN, R.string.InuTunnelLan, R.string.InuTunnelLanInfo, InuConfig.BUILT_IN_TUNNEL_LAN.value))
-        items.add(UItem.asButton(BUTTON_SNI, R.drawable.inu_tabler_server, LocaleController.getString(R.string.InuTunnelSni), if (InuConfig.BUILT_IN_TUNNEL_SNI.value.isEmpty()) "—" else InuConfig.BUILT_IN_TUNNEL_SNI.value))
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelPerf)))
-        for ((index, labelRes) in SYS_LABELS.withIndex()) {
-            val selected = InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value == index
-            items.add(UItem.asRadio(SYS_BASE + index, LocaleController.getString(labelRes))
-                .also { it.checked = selected })
-        }
-        items.add(UItem.asHeader(LocaleController.getString(R.string.InuTunnelPeer)))
-        val peer = InuConfig.BUILT_IN_TUNNEL_PEER.value
-        items.add(UItem.asButton(BUTTON_PEER, R.drawable.inu_tabler_server, LocaleController.getString(R.string.InuTunnelPeerSet), if (peer.isEmpty()) "—" else peer))
-        items.add(UItem.asShadow(LocaleController.getString(R.string.InuTunnelPeerInfo)))
+        items.add(UItem.asShadow(scanInfoText()))
 
         items.add(UItem.asButton(BUTTON_LOGS, R.drawable.inu_tabler_terminal_2, LocaleController.getString(R.string.InuTunnelLogs)))
         items.add(UItem.asButton(BUTTON_COPY_LOGS, R.drawable.inu_tabler_terminal_2, LocaleController.getString(R.string.InuCopyLogs)))
         items.add(UItem.asShadow(LocaleController.getString(R.string.InuCopyLogsInfo)))
+    }
+
+    private fun scanStageText(): String = when (V2RayScraper.stage) {
+        V2RayScraper.STAGE_LISTS -> LocaleController.getString(R.string.InuTunnelScanLists)
+        V2RayScraper.STAGE_PING -> LocaleController.getString(R.string.InuTunnelScanPing)
+        V2RayScraper.STAGE_TEST -> LocaleController.getString(R.string.InuTunnelScanTest)
+        else -> ""
+    }
+
+    private fun scanInfoText(): CharSequence = when (V2RayScraper.error) {
+        V2RayScraper.ERROR_ENGINE -> LocaleController.getString(R.string.InuTunnelScanFailEngine)
+        V2RayScraper.ERROR_LISTS -> LocaleController.getString(R.string.InuTunnelScanFailLists)
+        V2RayScraper.ERROR_UNREACHABLE -> LocaleController.getString(R.string.InuTunnelScanFailNone)
+        else -> LocaleController.getString(R.string.InuTunnelServersInfo)
     }
 
     private fun statusLine(): CharSequence = when {
@@ -121,12 +100,21 @@ class TunnelSettingsActivity : SettingsPageActivity() {
                 listView?.adapter?.update(true)
             }
 
-            item.id == BUTTON_PEER -> showPeerDialog()
+            item.id == BUTTON_SCAN -> {
+                val ctx = parentActivity ?: return
+                V2RayScraper.scanAsync(ctx)
+                listView?.adapter?.update(true)
+            }
+
+            item.id in SERVER_IDS -> {
+                val server = V2RayScraper.servers().getOrNull(SERVER_IDS.indexOf(item.id)) ?: return
+                BuiltInTunnelHelper.selectServer(server.link)
+                listView?.adapter?.update(true)
+            }
 
             item.id == BUTTON_LOGS -> showLogsDialog()
 
-            // entiny: one tap puts the full diagnostics report (state, ports, handshake test,
-            // bridge, engine log) on the clipboard so it can be pasted straight into a chat.
+            // entiny: one tap puts the full diagnostics report on the clipboard so it can be pasted straight into a chat
             item.id == BUTTON_COPY_LOGS -> {
                 val report = BuiltInTunnelHelper.diagnosticsText()
                 org.telegram.messenger.AndroidUtilities.addToClipboard(report)
@@ -135,125 +123,7 @@ class TunnelSettingsActivity : SettingsPageActivity() {
                     LocaleController.getString(R.string.InuLogsCopied)
                 ).show()
             }
-
-            item.id == TOGGLE_FRAGMENT -> {
-                InuConfig.BUILT_IN_TUNNEL_FRAGMENT.value = InuConfig.BUILT_IN_TUNNEL_FRAGMENT.toggle()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-
-            item.id == TOGGLE_ECH -> {
-                InuConfig.BUILT_IN_TUNNEL_ECH.value = InuConfig.BUILT_IN_TUNNEL_ECH.toggle()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-
-            item.id == TOGGLE_H2 -> {
-                InuConfig.BUILT_IN_TUNNEL_H2.value = InuConfig.BUILT_IN_TUNNEL_H2.toggle()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-
-            item.id in NOIZE_BASE until NOIZE_BASE + NOIZE_LABELS.size -> {
-                val next = NOIZE_VALUES[item.id - NOIZE_BASE]
-                if (InuConfig.BUILT_IN_TUNNEL_NOIZE.value != next) {
-                    InuConfig.BUILT_IN_TUNNEL_NOIZE.value = next
-                    BuiltInTunnelHelper.restartIfNeeded()
-                    listView?.adapter?.update(true)
-                }
-            }
-
-            item.id in IP_BASE until IP_BASE + IP_LABELS.size -> {
-                val next = item.id - IP_BASE
-                if (InuConfig.BUILT_IN_TUNNEL_IP.value != next) {
-                    InuConfig.BUILT_IN_TUNNEL_IP.value = next
-                    BuiltInTunnelHelper.restartIfNeeded()
-                    listView?.adapter?.update(true)
-                }
-            }
-
-            item.id in PROTOCOL_BASE until PROTOCOL_BASE + PROTOCOL_LABELS.size -> {
-                val protocol = item.id - PROTOCOL_BASE
-                if (InuConfig.BUILT_IN_TUNNEL_PROTOCOL.value != protocol) {
-                    InuConfig.BUILT_IN_TUNNEL_PROTOCOL.value = protocol
-                    BuiltInTunnelHelper.restartIfNeeded()
-                    listView?.adapter?.update(true)
-                }
-            }
-
-            item.id in SCAN_BASE until SCAN_BASE + SCAN_LABELS.size -> {
-                val scan = item.id - SCAN_BASE
-                if (InuConfig.BUILT_IN_TUNNEL_SCAN.value != scan) {
-                    InuConfig.BUILT_IN_TUNNEL_SCAN.value = scan
-                    BuiltInTunnelHelper.restartIfNeeded()
-                    listView?.adapter?.update(true)
-                }
-            }
-
-            item.id == TOGGLE_QUICK -> {
-                InuConfig.BUILT_IN_TUNNEL_QUICK.value = InuConfig.BUILT_IN_TUNNEL_QUICK.toggle()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-
-            item.id == TOGGLE_LAN -> {
-                InuConfig.BUILT_IN_TUNNEL_LAN.value = InuConfig.BUILT_IN_TUNNEL_LAN.toggle()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-
-            item.id == BUTTON_SNI -> showSniDialog()
-
-            item.id in SYS_BASE until SYS_BASE + SYS_LABELS.size -> {
-                val next = item.id - SYS_BASE
-                if (InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value != next) {
-                    InuConfig.BUILT_IN_TUNNEL_SYS_PROFILE.value = next
-                    BuiltInTunnelHelper.restartIfNeeded()
-                    listView?.adapter?.update(true)
-                }
-            }
         }
-    }
-
-    private fun showPeerDialog() {
-        val ctx = parentActivity ?: return
-        val input = EditText(ctx)
-        input.hint = "188.116.33.145:894"
-        input.setText(InuConfig.BUILT_IN_TUNNEL_PEER.value)
-        input.inputType = InputType.TYPE_CLASS_TEXT
-        AlertDialog.Builder(ctx, resourceProvider)
-            .setTitle(LocaleController.getString(R.string.InuTunnelPeer))
-            .setView(input)
-            .setPositiveButton(LocaleController.getString(R.string.InuTunnelPeerSave)) { _, _ ->
-                InuConfig.BUILT_IN_TUNNEL_PEER.value = input.text.toString().trim()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-            .setNeutralButton(LocaleController.getString(R.string.InuTunnelPeerClear)) { _, _ ->
-                InuConfig.BUILT_IN_TUNNEL_PEER.value = ""
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-            .show()
-    }
-
-    private fun showSniDialog() {
-        val ctx = parentActivity ?: return
-        val input = EditText(ctx)
-        input.hint = "speed.cloudflare.com"
-        input.setText(InuConfig.BUILT_IN_TUNNEL_SNI.value)
-        input.inputType = InputType.TYPE_CLASS_TEXT
-        AlertDialog.Builder(ctx, resourceProvider)
-            .setTitle(LocaleController.getString(R.string.InuTunnelSni))
-            .setView(input)
-            .setPositiveButton(LocaleController.getString(R.string.InuTunnelPeerSave)) { _, _ ->
-                InuConfig.BUILT_IN_TUNNEL_SNI.value = input.text.toString().trim()
-                BuiltInTunnelHelper.restartIfNeeded()
-                listView?.adapter?.update(true)
-            }
-            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-            .show()
     }
 
     private fun showLogsDialog() {
@@ -271,52 +141,10 @@ class TunnelSettingsActivity : SettingsPageActivity() {
 
     companion object {
         private val BUTTON_CONNECT = InuUtils.generateId()
-        private val BUTTON_PEER = InuUtils.generateId()
+        private val BUTTON_SCAN = InuUtils.generateId()
         private val BUTTON_LOGS = InuUtils.generateId()
         private val BUTTON_COPY_LOGS = InuUtils.generateId()
-        private val TOGGLE_FRAGMENT = InuUtils.generateId()
-        private val TOGGLE_ECH = InuUtils.generateId()
-        private val TOGGLE_H2 = InuUtils.generateId()
-        private val PROTOCOL_BASE = InuUtils.generateId()
-        private val SCAN_BASE = InuUtils.generateId()
-        private val NOIZE_BASE = InuUtils.generateId()
-        private val IP_BASE = InuUtils.generateId()
-        private val SYS_BASE = InuUtils.generateId()
-        private val TOGGLE_QUICK = InuUtils.generateId()
-        private val TOGGLE_LAN = InuUtils.generateId()
-        private val BUTTON_SNI = InuUtils.generateId()
-        private val SYS_LABELS = intArrayOf(
-            R.string.InuTunnelPerfAuto,
-            R.string.InuTunnelPerfLow,
-            R.string.InuTunnelPerfMedium,
-            R.string.InuTunnelPerfHigh,
-        )
-        private val NOIZE_VALUES = arrayOf("off", "light", "balanced", "aggressive")
-        private val NOIZE_LABELS = intArrayOf(
-            R.string.InuTunnelNoizeNone,
-            R.string.InuTunnelNoizeLight,
-            R.string.InuTunnelNoizeBalanced,
-            R.string.InuTunnelNoizeAggressive,
-        )
-        private val IP_LABELS = intArrayOf(
-            R.string.InuTunnelIpV4,
-            R.string.InuTunnelIpV6,
-            R.string.InuTunnelIpDual,
-        )
-        private val PROTOCOL_LABELS = intArrayOf(
-            R.string.InuTunnelProtoMasque,
-            R.string.InuTunnelProtoWireGuard,
-            R.string.InuTunnelProtoGool,
-            R.string.InuTunnelProtoAuto,
-            R.string.InuTunnelProtoMim,
-        )
-        private val SCAN_LABELS = intArrayOf(
-            R.string.InuTunnelScanTurbo,
-            R.string.InuTunnelScanBalanced,
-            R.string.InuTunnelScanThorough,
-            R.string.InuTunnelScanStealth,
-            R.string.InuTunnelScanIronclad,
-        )
+        private val SERVER_IDS = IntArray(V2RayScraper.TOP) { InuUtils.generateId() }
 
         @JvmField val PAGE = SearchRegistry.Page(
             slug = "built-in-tunnel",

@@ -386,46 +386,10 @@ object InuConfig {
     val BUILT_IN_TUNNEL = BoolItem("built_in_tunnel", false)
 
     @JvmField
-    val BUILT_IN_TUNNEL_PROTOCOL = IntItem("built_in_tunnel_protocol", 0)
+    val BUILT_IN_TUNNEL_SERVER = StringItem("built_in_tunnel_server", "", exportable = false)
 
     @JvmField
-    val BUILT_IN_TUNNEL_SCAN = IntItem("built_in_tunnel_scan", 0)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_PEER = StringItem("built_in_tunnel_peer", "")
-
-    @JvmField
-    val BUILT_IN_TUNNEL_NOIZE = StringItem("built_in_tunnel_noize", "balanced")
-
-    @JvmField
-    val BUILT_IN_TUNNEL_FRAGMENT = BoolItem("built_in_tunnel_fragment", true)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_ECH = BoolItem("built_in_tunnel_ech", false)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_H2 = BoolItem("built_in_tunnel_h2", true)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_IP = IntItem("built_in_tunnel_ip", 0)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_BACKEND = IntItem("built_in_tunnel_backend", 0)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_PSIPHON_REGION = StringItem("built_in_tunnel_psiphon_region", "")
-
-    @JvmField
-    val BUILT_IN_TUNNEL_QUICK = BoolItem("built_in_tunnel_quick", true)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_LAN = BoolItem("built_in_tunnel_lan", false)
-
-    @JvmField
-    val BUILT_IN_TUNNEL_SNI = StringItem("built_in_tunnel_sni", "")
-
-    @JvmField
-    val BUILT_IN_TUNNEL_SYS_PROFILE = IntItem("built_in_tunnel_sys_profile", 0)
+    val BUILT_IN_TUNNEL_SERVERS = StringItem("built_in_tunnel_servers", "", exportable = false)
 
     @JvmField
     val HELBOY_TV = BoolItem("helboy_tv", false)

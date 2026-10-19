@@ -145,45 +145,41 @@ async function downloadTo(url: string, file: string) {
   await fs.writeFile(file, Buffer.from(await res.arrayBuffer()))
 }
 
+const XRAY_VERSION = 'v26.3.27'
+const XRAY_ASSETS: Record<string, string> = {
+  'arm64-v8a': 'Xray-android-arm64-v8a.zip',
+  'armeabi-v7a': 'Xray-linux-arm32-v7a.zip',
+  x86_64: 'Xray-linux-64.zip',
+  x86: 'Xray-linux-32.zip',
+}
+
 async function ensureTunnelLibs() {
-  // Prebuilt tunnel engine (GPLv3, https://github.com/FCFlenkchy/FCAE_VPN) extracted from its release APK; gitignored.
+  // Xray-core (MPL-2.0, https://github.com/XTLS/Xray-core) is shipped as libxray.so and run as a child process; gitignored.
   // Must land under TMessagesProj/jni/<abi>/ because that is the only jniLibs srcDir in Telegram's gradle.
   const abis = (process.env.TUNNEL_ABIS ?? 'arm64-v8a').split(',').map(s => s.trim()).filter(Boolean)
   const stageRoot = join(rootDir, 'src/tunnel/jniLibs')
-  const missing = abis.filter(abi => !existsSync(join(stageRoot, abi, 'libfcaevpn_native.so')))
-  if (missing.length > 0) {
-    const tmp = join(rootDir, '.tunnel-tmp')
-    try {
-      for (const abi of missing) {
+  for (const abi of abis) {
+    const asset = XRAY_ASSETS[abi]
+    if (!asset) continue
+    const staged = join(stageRoot, abi, `libxray-${XRAY_VERSION}.so`)
+    if (!existsSync(staged)) {
+      const tmp = join(rootDir, '.tunnel-tmp')
+      try {
         await fs.rm(tmp, { recursive: true, force: true })
         await ensureDir(tmp)
-        await downloadTo(
-          `https://github.com/FCFlenkchy/FCAE_VPN/releases/download/1.3.5.7/FCAE_VPN-android-${abi}-1.3.5.7.zip`,
-          join(tmp, 'engine.zip'),
-        )
-        await $({ quiet: true })`unzip -q -o ${join(tmp, 'engine.zip')} -d ${tmp}`
-        const apk = (await fs.readdir(tmp).then(list => list.find(f => f.endsWith('.apk'))))!
-        if (!apk) throw new Error('no APK inside engine.zip')
-        await $({ quiet: true })`unzip -q -o ${join(tmp, apk)} ${`lib/${abi}/*`} -d ${tmp}`
-        const src = join(tmp, 'lib', abi)
-        if (!existsSync(src)) throw new Error(`tunnel release has no ${abi} libraries`)
+        await downloadTo(`https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/${asset}`, join(tmp, 'xray.zip'))
+        await $({ quiet: true })`unzip -q -o ${join(tmp, 'xray.zip')} xray -d ${tmp}`
         await ensureDir(join(stageRoot, abi))
-        await fs.cp(src, join(stageRoot, abi), { recursive: true })
+        await fs.copyFile(join(tmp, 'xray'), staged)
+      } finally {
+        await fs.rm(tmp, { recursive: true, force: true })
       }
-    } finally {
-      await fs.rm(tmp, { recursive: true, force: true })
     }
-  }
-  for (const abi of abis) {
-    const stage = join(stageRoot, abi)
-    if (!existsSync(stage)) continue
     const target = join(worktreeDir, 'TMessagesProj/jni', abi)
     await ensureDir(target)
-    for (const file of await fs.readdir(stage)) {
-      if (!file.endsWith('.so')) continue
-      await fs.copyFile(join(stage, file), join(target, file))
-      await ensureGitExclude(worktreeDir, `TMessagesProj/jni/${abi}/${file}`)
-    }
+    await fs.copyFile(staged, join(target, 'libxray.so'))
+    for (const stale of ['libfcae_go_bridge.so', 'libfcaevpn_native.so']) await fs.rm(join(target, stale), { force: true })
+    await ensureGitExclude(worktreeDir, `TMessagesProj/jni/${abi}/libxray.so`)
   }
 }
 
