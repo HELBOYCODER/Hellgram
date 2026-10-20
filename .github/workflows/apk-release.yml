@@ -2,6 +2,15 @@ name: Release APK (fork CI, repo keystore)
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Publish a GitHub release with this tag (e.g. v1.1.0); leave empty to only build'
+        required: false
+        default: ''
+      notes:
+        description: 'Release notes (markdown)'
+        required: false
+        default: ''
   push:
     branches:
       - main
@@ -11,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -81,6 +90,8 @@ jobs:
           JSON
 
       - name: Set up worktree
+        env:
+          TUNNEL_ABIS: arm64-v8a,armeabi-v7a
         run: bun run setup -- --no-stgit
 
       - name: Stub google-services.json
@@ -117,3 +128,19 @@ jobs:
           path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish GitHub release
+        if: ${{ github.event.inputs.tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag }}
+          NOTES: ${{ github.event.inputs.notes }}
+          APK_PATH: ${{ steps.apk.outputs.path }}
+        run: |
+          cp "$APK_PATH" "Hellgram-${TAG}-universal.apk"
+          printf '%s\n' "$NOTES" > release-notes.md
+          gh release create "$TAG" "Hellgram-${TAG}-universal.apk" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Hellgram ${TAG}" \
+            --notes-file release-notes.md
