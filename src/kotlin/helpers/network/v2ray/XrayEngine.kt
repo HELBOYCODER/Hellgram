@@ -95,6 +95,8 @@ object XrayEngine {
         val pb = ProcessBuilder(bin.absolutePath, "run", "-c", cfg.absolutePath)
         pb.directory(dir)
         pb.environment()["XRAY_LOCATION_ASSET"] = dir.absolutePath
+        // entiny: the generic linux Xray builds (armv7/x86) only find root certificates through this variable
+        pb.environment()["SSL_CERT_DIR"] = "/system/etc/security/cacerts"
         pb.redirectErrorStream(true)
         val process = pb.start()
         Thread {

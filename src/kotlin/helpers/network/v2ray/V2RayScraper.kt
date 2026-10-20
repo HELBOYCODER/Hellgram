@@ -31,34 +31,42 @@ object V2RayScraper {
     const val ERROR_UNREACHABLE = 3
 
     const val TOP = 5
-    private const val SAMPLE = 300
-    private const val REAL_TEST = 70
+    private const val SAMPLE = 400
+    private const val REAL_TEST = 150
     private const val PER_ENDPOINT = 2
-    private const val GOOD_ENOUGH = 10
+    private const val GOOD_ENOUGH = 8
+    private const val MAX_PARSE = 9000
+    private const val MAX_SEEN = 1500
+    private const val LIST_TTL_MS = 15 * 60 * 1000L
     private const val MAX_BODY = 6 * 1024 * 1024
 
     private class Source(val raw: String, val cdn: String)
 
     private val SOURCES = listOf(
-        Source(
-            "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/All_Configs_Sub.txt",
-            "https://cdn.jsdelivr.net/gh/barry-far/V2ray-Config@main/All_Configs_Sub.txt",
-        ),
-        Source(
-            "https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/All_Configs_Sub.txt",
-            "https://cdn.jsdelivr.net/gh/Epodonios/v2ray-configs@main/All_Configs_Sub.txt",
-        ),
-        Source(
-            "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt",
-            "https://cdn.jsdelivr.net/gh/mahdibland/V2RayAggregator@master/sub/sub_merge.txt",
-        ),
-        Source(
-            "https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt",
-            "https://cdn.jsdelivr.net/gh/MatinGhanbari/v2ray-configs@main/subscriptions/v2ray/super-sub.txt",
-        ),
+        source("barry-far", "V2ray-Config", "main", "All_Configs_Sub.txt"),
+        source("Epodonios", "v2ray-configs", "main", "All_Configs_Sub.txt"),
+        source("mahdibland", "V2RayAggregator", "master", "sub/sub_merge.txt"),
+        source("mahdibland", "V2RayAggregator", "master", "Eternity.txt"),
+        source("MatinGhanbari", "v2ray-configs", "main", "subscriptions/v2ray/super-sub.txt"),
+        source("10ium", "V2rayCollector", "main", "mixed_iran.txt"),
+        source("MhdiTaheri", "V2rayCollector", "main", "sub/mix"),
+        source("peasoft", "NoMoreWalls", "master", "list_raw.txt"),
+        source("Mahdi0024", "ProxyCollector", "master", "sub/proxies.txt"),
+        source("NiREvil", "vless", "main", "sub/SSTime"),
+        source("ermaozi", "get_subscribe", "main", "subscribe/v2ray.txt"),
+        source("Pawdroid", "Free-servers", "main", "sub"),
+        source("Surfboardv2ray", "TGParse", "main", "splitted/vless"),
+    )
+
+    private fun source(user: String, repo: String, branch: String, path: String) = Source(
+        "https://raw.githubusercontent.com/$user/$repo/$branch/$path",
+        "https://cdn.jsdelivr.net/gh/$user/$repo@$branch/$path",
     )
 
     private val lock = Any()
+    @Volatile private var cachedLinks: List<String> = emptyList()
+    @Volatile private var cachedSources = 0
+    @Volatile private var cachedAt = 0L
     @Volatile private var running = false
 
     @Volatile var stage = STAGE_IDLE
@@ -151,24 +159,39 @@ object V2RayScraper {
             return
         }
         setStage(STAGE_LISTS)
-        val fetched = fetchAll()
+        val fetched = if (cachedLinks.isNotEmpty() && SystemClock.elapsedRealtime() - cachedAt < LIST_TTL_MS) {
+            cachedLinks to cachedSources
+        } else {
+            fetchAll().also {
+                if (it.first.isNotEmpty()) {
+                    cachedLinks = it.first
+                    cachedSources = it.second
+                    cachedAt = SystemClock.elapsedRealtime()
+                }
+            }
+        }
         val links = fetched.first
         if (links.isEmpty()) {
             error = ERROR_LISTS
             report = "lists ${fetched.second}/${SOURCES.size}"
             return
         }
-        val seen = HashSet<String>()
+        val seenRaw = HashSet<String>()
         val parsed = ArrayList<V2RayServer>()
-        for (line in links) {
+        for (line in links.shuffled()) {
+            if (parsed.size >= MAX_PARSE) break
+            if (!seenRaw.add(line)) continue
             val server = V2RayLink.parse(line) ?: continue
-            if (seen.add(server.key())) parsed.add(server)
+            parsed.add(server)
         }
 
         // entiny: public lists are full of hundreds of configs behind the same CDN IP; ping each endpoint once
         // and keep only a few configs per endpoint so the test round is not flooded with clones of one dead front
         val byEndpoint = parsed.groupBy { "${it.host}:${it.port}" }
-        val endpoints = byEndpoint.keys.shuffled().take(SAMPLE)
+        val shown = loadSeen()
+        val fresh = byEndpoint.keys.filter { it !in shown }.shuffled()
+        val old = byEndpoint.keys.filter { it in shown }.shuffled()
+        val endpoints = (fresh.take(SAMPLE) + old.take((SAMPLE - fresh.size).coerceAtLeast(SAMPLE / 4))).distinct()
 
         setStage(STAGE_PING)
         val pingPool = Executors.newFixedThreadPool(40)
@@ -184,12 +207,13 @@ object V2RayScraper {
             if (ms >= 0) endpointPing[ep] = ms
         }
         pingPool.shutdownNow()
-        val reachable = endpointPing.entries.sortedBy { it.value }.flatMap { (ep, ms) ->
-            byEndpoint.getValue(ep).shuffled().take(PER_ENDPOINT).onEach { it.pingMs = ms }
-        }.take(REAL_TEST)
+        val ordered = endpointPing.entries
+            .sortedWith(compareBy({ it.key in shown }, { it.value }))
+            .flatMap { (ep, ms) -> byEndpoint.getValue(ep).shuffled().take(PER_ENDPOINT).onEach { it.pingMs = ms } }
+            .take(REAL_TEST)
         report = "lists ${fetched.second}/${SOURCES.size}, links ${links.size}, parsed ${parsed.size}, " +
-            "endpoints ${endpoints.size}, reachable ${endpointPing.size}, testing ${reachable.size}"
-        if (reachable.isEmpty()) {
+            "endpoints ${endpoints.size}, reachable ${endpointPing.size}, testing ${ordered.size}"
+        if (ordered.isEmpty()) {
             error = ERROR_UNREACHABLE
             return
         }
@@ -197,15 +221,17 @@ object V2RayScraper {
         setStage(STAGE_TEST)
         val testPool = Executors.newFixedThreadPool(6)
         val completion = ExecutorCompletionService<Pair<V2RayServer, Int>>(testPool)
-        for (server in reachable) completion.submit { server to XrayEngine.realDelay(context, server) }
+        for (server in ordered) completion.submit { server to XrayEngine.realDelay(context, server) }
         val tested = ArrayList<V2RayServer>()
-        val testDeadline = SystemClock.elapsedRealtime() + 110_000
+        val triedEndpoints = HashSet<String>()
+        val testDeadline = SystemClock.elapsedRealtime() + 150_000
         var done = 0
-        while (done < reachable.size && tested.size < GOOD_ENOUGH) {
+        while (done < ordered.size && tested.size < GOOD_ENOUGH) {
             val left = testDeadline - SystemClock.elapsedRealtime()
             if (left <= 0) break
             val result = (try { completion.poll(left, TimeUnit.MILLISECONDS)?.get() } catch (_: Throwable) { null }) ?: break
             done++
+            triedEndpoints.add("${result.first.host}:${result.first.port}")
             if (result.second > 0) {
                 result.first.pingMs = result.second
                 tested.add(result.first)
@@ -213,7 +239,9 @@ object V2RayScraper {
         }
         testPool.shutdownNow()
         report += ", passed ${tested.size}/$done"
-        val best = tested.sortedBy { it.pingMs }.take(TOP)
+        val best = tested.sortedBy { it.pingMs }.distinctBy { "${it.host}:${it.port}" }.take(TOP)
+        // entiny: remember what was tried so the next scan brings new servers instead of the same dead ones
+        saveSeen(shown, triedEndpoints + best.map { "${it.host}:${it.port}" })
         if (best.isEmpty()) {
             error = ERROR_UNREACHABLE
             return
@@ -221,6 +249,24 @@ object V2RayScraper {
         val out = JSONArray()
         for (server in best) out.put(JSONObject().put("link", server.link).put("ping", server.pingMs))
         InuConfig.BUILT_IN_TUNNEL_SERVERS.value = out.toString()
+    }
+
+    private fun loadSeen(): Set<String> {
+        val raw = InuConfig.BUILT_IN_TUNNEL_SEEN.value
+        if (raw.isBlank()) return emptySet()
+        return try {
+            val arr = JSONArray(raw)
+            (0 until arr.length()).mapTo(LinkedHashSet()) { arr.getString(it) }
+        } catch (_: Throwable) {
+            emptySet()
+        }
+    }
+
+    private fun saveSeen(previous: Set<String>, added: Collection<String>) {
+        val all = LinkedHashSet<String>(previous)
+        all.addAll(added)
+        val keep = all.toList().takeLast(MAX_SEEN)
+        InuConfig.BUILT_IN_TUNNEL_SEEN.value = JSONArray(keep).toString()
     }
 
     private fun tcpPing(host: String, port: Int): Int = try {

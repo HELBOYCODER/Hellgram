@@ -49,7 +49,7 @@ our own layer on top of the inugram patchset: restricted Telegram features, priv
   - **hide sponsored messages**: completely disables Telegram sponsored channel ads and video ads
   - **hide proxy sponsor chat**: blocks the promoted chat/channel some MTProto proxies pin to the top of your chat list while connected
   - **regex content filter**: hide or spoiler-cover messages matching custom regex rules, with per-chat scope, allowlists, and JSON export/import
-- 📡 **Entiny Tunnel** (⚠️ work in progress: untested and may be unstable — please report any bugs): built-in V2Ray tunnel that scrapes public lists and shows the 5 lowest-ping servers to pick from; Telegram connects via local 127.0.0.1:1819, separate from your proxy list. *engine powered by [Xray-core](https://github.com/XTLS/Xray-core) (MPL-2.0)*
+- 📡 **Entiny Tunnel** (⚠️ work in progress: untested and may be unstable — please report any bugs): built-in V2Ray tunnel that scrapes 13 public lists and shows the 5 lowest-ping servers to pick from, 5 new ones on every scan; Telegram connects via local 127.0.0.1:1819, separate from your proxy list. *engine powered by [Xray-core](https://github.com/XTLS/Xray-core) (MPL-2.0)*
 
 ### restricted features
 

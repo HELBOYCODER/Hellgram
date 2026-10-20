@@ -392,6 +392,9 @@ object InuConfig {
     val BUILT_IN_TUNNEL_SERVERS = StringItem("built_in_tunnel_servers", "", exportable = false)
 
     @JvmField
+    val BUILT_IN_TUNNEL_SEEN = StringItem("built_in_tunnel_seen", "", exportable = false)
+
+    @JvmField
     val HELBOY_TV = BoolItem("helboy_tv", false)
 
     @JvmField
